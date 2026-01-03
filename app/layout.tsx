@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Manrope, Unbounded } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const manrope = Manrope({
   variable: "--font-body",
@@ -25,10 +27,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it">
-      <body
-        className={`${manrope.variable} ${unbounded.variable} antialiased`}
-      >
-        {children}
+      <body className={`${manrope.variable} ${unbounded.variable} antialiased`}>
+        <NuqsAdapter>
+          {children}
+          <Toaster />
+        </NuqsAdapter>
       </body>
     </html>
   );

@@ -76,11 +76,9 @@ html {
 }
 
 .bg-grid {
-  background-image: linear-gradient(
-      to right,
+  background-image: linear-gradient(to right,
       rgba(148, 163, 184, 0.15) 1px,
-      transparent 1px
-    ),
+      transparent 1px),
     linear-gradient(to bottom, rgba(148, 163, 184, 0.15) 1px, transparent 1px);
   background-size: 140px 140px;
   mask-image: radial-gradient(circle at top, black, transparent 70%);
@@ -112,10 +110,12 @@ html {
 }
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-16px);
   }
@@ -125,19 +125,23 @@ html {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
 }
 
 @keyframes pulse-glow {
+
   0%,
   100% {
     opacity: 0.7;
   }
+
   50% {
     opacity: 1;
   }
@@ -148,6 +152,7 @@ html {
     opacity: 0;
     transform: translateY(16px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -155,6 +160,7 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .float-slow,
   .float-medium,
   .float-fast,
@@ -167,16 +173,14 @@ html {
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.25 0.08 250);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: oklch(0.25 0.08 250);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.65 0.12 280 / 20%);
+  --secondary-foreground: oklch(0.25 0.08 250);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
@@ -198,6 +202,8 @@ html {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --background: oklch(0.65 0.12 280 / 20%);
+  --foreground: oklch(0.145 0 0);
 }
 
 .dark {
@@ -238,7 +244,13 @@ html {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+
   }
+}
+
+.main-container {
+  @apply max-w-7xl mx-auto p-2
 }
