@@ -3,6 +3,7 @@
 import {
   propertySchema,
   PropertyFormValues,
+  PropertyWithDetails,
 } from "@/components/property/schema";
 import { Form } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,7 @@ import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-import { addPropertyAction } from "@/components/property/actions";
+import { editPropertyAction } from "@/components/property/actions";
 import { toast } from "sonner";
 import { urls } from "@/lib/urls";
 import { Loader2, X } from "lucide-react";
@@ -30,31 +31,48 @@ import { NumberField } from "../ui/number-field";
 import { useDropzone } from "react-dropzone";
 import { services } from "@/components/property/services";
 import ImportFromHtmlSheet from "@/components/property/import-from-html-sheet";
+import TemplateSwitcher from "@/components/property/template-switcher";
 
-export default function AddPropertyForm() {
-  const [isAddingProperty, startAddingProperty] = useTransition();
+export default function EditPropertyForm({
+  property,
+}: {
+  property: PropertyWithDetails;
+}) {
+  const [isEditingProperty, startEditingProperty] = useTransition();
   const router = useRouter();
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(propertySchema),
     defaultValues: {
       info: {
-        name: "",
-        description: "",
+        name: property.details.info.name,
+        description: property.details.info.description ?? "",
         rooms: 1,
-        bathrooms: 0,
-        guests: 1,
-        cancellationPolicy: "",
+        bathrooms: property.details.info.bathrooms,
+        guests: property.details.info.guests,
+        cancellationPolicy: property.details.info.cancellationPolicy ?? "",
       },
-      services: [],
-      gallery: [],
+      services: property.details.services ?? [],
+      gallery: property.details.gallery ?? [],
+      position: property.details.position ?? {
+        address: "",
+        city: "",
+        country: "",
+      },
+      contact: property.details.contact ?? {
+        name: "",
+        email: "",
+        phone: "",
+      },
     },
   });
 
   const onSubmit = (data: PropertyFormValues) => {
-    startAddingProperty(async () => {
+    startEditingProperty(async () => {
       try {
-        const { serverError, validationErrors } = await addPropertyAction(data);
+        const { serverError, validationErrors } = await editPropertyAction(
+          data
+        );
 
         if (serverError) {
           throw new Error(serverError);
@@ -64,10 +82,10 @@ export default function AddPropertyForm() {
           throw new Error();
         }
 
-        toast.success("Proprietà aggiunta con successo");
+        toast.success("Proprietà aggiornata con successo");
         router.push(urls.dashboard.index);
       } catch (error) {
-        toast.error("Errore durante l'aggiunta della proprietà");
+        toast.error("Errore durante l'aggiornamento della proprietà");
       }
     });
   };
@@ -106,7 +124,10 @@ export default function AddPropertyForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <ImportFromHtmlSheet />
+        <div className="flex flex-wrap items-center gap-3">
+          <ImportFromHtmlSheet />
+          <TemplateSwitcher />
+        </div>
         <h2 className="text-2xl font-bold">Informazioni generali</h2>
         <FormField
           control={form.control}
@@ -372,9 +393,9 @@ export default function AddPropertyForm() {
           )}
         />
 
-        <Button type="submit" disabled={isAddingProperty}>
-          {isAddingProperty && <Loader2 className="size-4 animate-spin" />}
-          Aggiungi proprietà
+        <Button type="submit" disabled={isEditingProperty}>
+          {isEditingProperty && <Loader2 className="size-4 animate-spin" />}
+          Salva proprietà
         </Button>
       </form>
     </Form>

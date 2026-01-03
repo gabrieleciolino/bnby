@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PropertySchema } from "@/components/property/schema";
+import { PropertyFormValues } from "@/components/property/schema";
 import { useFormContext } from "react-hook-form";
 import { Button } from "../ui/button";
 import {
@@ -81,7 +81,7 @@ export default function ServicesForm({
   goNext: () => void;
   goPrevious: () => void;
 }) {
-  const form = useFormContext<PropertySchema>();
+  const form = useFormContext<PropertyFormValues>();
 
   return (
     <div className="space-y-4">

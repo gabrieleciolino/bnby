@@ -1,3 +1,4 @@
+import { Database } from "@/lib/db/types";
 import { urls } from "@/lib/urls";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
@@ -9,7 +10,7 @@ export async function updateSession(request: NextRequest) {
 
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
     {
@@ -42,14 +43,56 @@ export async function updateSession(request: NextRequest) {
 
   const user = data?.claims;
 
+  // if (
+  //   !user &&
+  //   !request.nextUrl.pathname.startsWith("/login") &&
+  //   !request.nextUrl.pathname.startsWith("/auth")
+  // ) {
+  //   // no user, potentially respond by redirecting the user to the login page
+  //   const url = request.nextUrl.clone();
+  //   url.pathname = urls.auth.login;
+  //   return NextResponse.redirect(url);
+  // }
+
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
+    !request.nextUrl.pathname.startsWith(urls.auth.login) &&
+    (request.nextUrl.pathname.startsWith(urls.admin.index) ||
+      request.nextUrl.pathname.startsWith(urls.dashboard.index))
   ) {
-    // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = urls.auth.login;
+    return NextResponse.redirect(url);
+  }
+
+  // get account related to the user
+  const { data: accountData, error: accountError } = await supabase
+    .from("account")
+    .select("*")
+    .eq("user_id", user?.sub!)
+    .single();
+
+  console.log(accountData, accountError);
+
+  if (
+    user &&
+    accountData &&
+    !accountData.is_admin &&
+    request.nextUrl.pathname.startsWith(urls.admin.index)
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = urls.dashboard.index;
+    return NextResponse.redirect(url);
+  }
+
+  if (
+    user &&
+    accountData &&
+    accountData.is_admin &&
+    request.nextUrl.pathname.startsWith(urls.dashboard.index)
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = urls.admin.index;
     return NextResponse.redirect(url);
   }
 

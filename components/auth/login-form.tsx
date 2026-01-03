@@ -35,7 +35,11 @@ export default function LoginForm() {
   const onSubmit = (data: LoginSchema) => {
     startLoggingIn(async () => {
       try {
-        const { serverError, validationErrors } = await loginAction(data);
+        const {
+          data: loginData,
+          serverError,
+          validationErrors,
+        } = await loginAction(data);
 
         if (serverError) {
           console.error(serverError);
@@ -47,7 +51,13 @@ export default function LoginForm() {
           throw new Error();
         }
 
-        router.push(urls.dashboard.index);
+        if (loginData?.user) {
+          if (loginData.account.is_admin) {
+            router.push(urls.admin.index);
+          } else {
+            router.push(urls.dashboard.index);
+          }
+        }
       } catch (error) {
         toast.error("Errore durante il login");
       }

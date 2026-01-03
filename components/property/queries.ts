@@ -15,6 +15,15 @@ export const getPropertiesQuery = cache(async () => {
   return data;
 });
 
-export type Property = NonNullable<
-  Awaited<ReturnType<typeof getPropertiesQuery>>
->[number];
+export const getPropertyQuery = cache(async (id: string) => {
+  const supabase = await createClient();
+  const user = await getUserQuery();
+
+  const { data } = await supabase
+    .from("property")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  return data;
+});

@@ -39,6 +39,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      account: {
+        Row: {
+          created_at: string
+          is_admin: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          is_admin?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          is_admin?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       gallery: {
         Row: {
           created_at: string
@@ -73,49 +94,25 @@ export type Database = {
       }
       property: {
         Row: {
-          address: string
-          bathrooms: number
-          city: string
-          country: string
           created_at: string
-          description: string | null
-          guests: number
+          details: Json
           id: string
-          name: string
-          rooms: number
-          services: string[]
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
-          address: string
-          bathrooms: number
-          city: string
-          country: string
           created_at?: string
-          description?: string | null
-          guests: number
+          details: Json
           id?: string
-          name: string
-          rooms: number
-          services?: string[]
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
-          address?: string
-          bathrooms?: number
-          city?: string
-          country?: string
           created_at?: string
-          description?: string | null
-          guests?: number
+          details?: Json
           id?: string
-          name?: string
-          rooms?: number
-          services?: string[]
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }

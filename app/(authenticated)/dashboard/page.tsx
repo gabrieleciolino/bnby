@@ -7,7 +7,7 @@ export default async function DashboardPage() {
 
   return (
     <ProtectedWrapper title="Dashboard">
-      <PropertiesList properties={properties ?? []} />
+      <div>Dashboard</div>
     </ProtectedWrapper>
   );
 }

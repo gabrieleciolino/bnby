@@ -10,6 +10,7 @@ export const urls = {
     index: "/admin",
     property: {
       add: "/admin/property/add",
+      view: (id: string) => `/admin/property/${id}`,
     },
   },
 };

@@ -8,6 +8,7 @@ import {
   boolean,
 } from "drizzle-orm/pg-core";
 import { uuid } from "drizzle-orm/pg-core";
+import { PropertySchema } from "@/components/property/schema";
 
 const authSchema = pgSchema("auth");
 export const authUsers = authSchema.table("users", {
@@ -29,19 +30,9 @@ export const accountTable = pgTable("account", {
 
 export const propertyTable = pgTable("property", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  description: text("description"),
-  address: text("address").notNull(),
-  city: text("city").notNull(),
-  country: text("country").notNull(),
-  rooms: integer("rooms").notNull(),
-  bathrooms: integer("bathrooms").notNull(),
-  guests: integer("guests").notNull(),
-  services: text("services").array().notNull().default([]),
+  details: jsonb("details").notNull().$type<PropertySchema>(),
 
-  userId: uuid("user_id")
-    .references(() => authUsers.id)
-    .notNull(),
+  userId: uuid("user_id").references(() => authUsers.id),
 
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()

@@ -18,7 +18,21 @@ export const loginAction = publicActionClient
       throw new Error(error.message);
     }
 
-    return data;
+    // get account related to the user
+    const { data: accountData, error: accountError } = await supabase
+      .from("account")
+      .select("*")
+      .eq("user_id", data.user.id)
+      .single();
+
+    if (accountError) {
+      throw new Error(accountError.message);
+    }
+
+    return {
+      user: data.user,
+      account: accountData,
+    };
   });
 
 export const logoutAction = authActionClient.action(async ({ ctx }) => {
