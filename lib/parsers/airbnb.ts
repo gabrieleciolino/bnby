@@ -44,9 +44,10 @@ const extractDataInjectorInstances = (html: string): unknown | null => {
   if (typeof DOMParser !== "undefined") {
     try {
       const doc = new DOMParser().parseFromString(html, "text/html");
-      content = doc
-        .querySelector("script#data-injector-instances")
-        ?.textContent?.trim() ?? null;
+      content =
+        doc
+          .querySelector("script#data-injector-instances")
+          ?.textContent?.trim() ?? null;
     } catch {
       content = null;
     }
@@ -300,7 +301,9 @@ const extractGallery = (section: AnyRecord | null): string[] => {
   return Array.from(new Set(urls));
 };
 
-const extractLocation = (section: AnyRecord | null): PropertyFormValues["position"] => {
+const extractLocation = (
+  section: AnyRecord | null
+): PropertyFormValues["position"] => {
   if (!section) {
     return undefined;
   }
@@ -342,7 +345,9 @@ const extractHostName = (section: AnyRecord | null): string | null => {
   return asString(cardData?.name);
 };
 
-const extractCancellationPolicy = (stayProductDetailPage: AnyRecord): string | null => {
+const extractCancellationPolicy = (
+  stayProductDetailPage: AnyRecord
+): string | null => {
   const sectionsContainer = isRecord(stayProductDetailPage.sections)
     ? stayProductDetailPage.sections
     : null;
@@ -360,7 +365,8 @@ const extractCancellationPolicy = (stayProductDetailPage: AnyRecord): string | n
   }
 
   const name = asString(policy.localized_cancellation_policy_name);
-  const title = asString(policy.title) || asString(policy.book_it_module_tooltip);
+  const title =
+    asString(policy.title) || asString(policy.book_it_module_tooltip);
 
   if (name && title && !title.includes(name)) {
     return `${name} - ${title}`;
@@ -389,7 +395,10 @@ export const parseAirbnbHtml = (html: string): AirbnbParseResult => {
   const sections = getSections(stayProductDetailPage);
 
   const titleSection = findSection(sections, "PdpTitleSection");
-  const availabilitySection = findSection(sections, "AvailabilityCalendarSection");
+  const availabilitySection = findSection(
+    sections,
+    "AvailabilityCalendarSection"
+  );
   const locationSection = findSection(sections, "LocationSection");
   const amenitiesSection = findSection(sections, "AmenitiesSection");
   const photoSection = findSection(sections, "PhotoTourModalSection");
@@ -399,8 +408,9 @@ export const parseAirbnbHtml = (html: string): AirbnbParseResult => {
     sections,
     "GeneralListContentSection",
     (section) =>
-      asString(section.title)?.toLowerCase().includes("informazioni su questo spazio") ??
-      false
+      asString(section.title)
+        ?.toLowerCase()
+        .includes("informazioni su questo spazio") ?? false
   );
   if (!descriptionSection) {
     descriptionSection = findSection(
@@ -413,7 +423,8 @@ export const parseAirbnbHtml = (html: string): AirbnbParseResult => {
   const info: Partial<PropertyFormValues["info"]> = {};
 
   const title =
-    asString(titleSection?.title) ?? asString(availabilitySection?.listingTitle);
+    asString(titleSection?.title) ??
+    asString(availabilitySection?.listingTitle);
   if (title) {
     info.name = title;
   }
@@ -425,12 +436,14 @@ export const parseAirbnbHtml = (html: string): AirbnbParseResult => {
 
   const overviewLabels = getOverviewLabels(stayProductDetailPage);
   const descriptionLabels = getDescriptionItemLabels(availabilitySection);
-  const shareSave = titleSection && isRecord(titleSection.shareSave)
-    ? titleSection.shareSave
-    : null;
-  const sharingConfig = shareSave && isRecord(shareSave.sharingConfig)
-    ? shareSave.sharingConfig
-    : null;
+  const shareSave =
+    titleSection && isRecord(titleSection.shareSave)
+      ? titleSection.shareSave
+      : null;
+  const sharingConfig =
+    shareSave && isRecord(shareSave.sharingConfig)
+      ? shareSave.sharingConfig
+      : null;
   const summary = asString(sharingConfig?.title) ?? null;
   const counts = parseCounts([
     ...overviewLabels,
@@ -463,7 +476,7 @@ export const parseAirbnbHtml = (html: string): AirbnbParseResult => {
   }
 
   if (Object.keys(info).length > 0) {
-    values.info = info;
+    values.info = info as PropertyFormValues["info"];
   }
 
   const amenities = getAmenities(amenitiesSection);

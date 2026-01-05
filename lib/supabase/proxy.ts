@@ -72,8 +72,6 @@ export async function updateSession(request: NextRequest) {
     .eq("user_id", user?.sub!)
     .single();
 
-  console.log(accountData, accountError);
-
   if (
     user &&
     accountData &&

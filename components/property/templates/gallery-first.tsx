@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, MapPin, Sparkles } from "lucide-react";
 import {
+  GalleryOverlay,
   GalleryFallback,
   StickyCta,
   formatCapacity,
@@ -17,11 +18,15 @@ export default function GalleryFirstTemplate({
   gallery,
   position,
   contact,
+  faqs,
 }: PropertyTemplateProps) {
   const galleryUrls = getGalleryUrls(gallery);
+  const galleryPreview = galleryUrls.slice(0, 6);
   const heroImage = galleryUrls[0];
   const highlightedServices = getHighlightedServices(services);
   const description = info.description?.trim();
+  const houseRules = info.houseRules?.trim();
+  const faqItems = faqs ?? [];
   const contactLines = getContactLines(contact);
   const hasContact = contactLines.length > 0;
   const cancellationCopy =
@@ -95,16 +100,21 @@ export default function GalleryFirstTemplate({
             </p>
           </div>
           {galleryUrls.length > 0 ? (
-            <div className="columns-1 gap-4 md:columns-2 lg:columns-3">
-              {galleryUrls.map((image, index) => (
-                <img
-                  key={`${image}-${index}`}
-                  src={image}
-                  alt={`Foto ${index + 1} di ${info.name}`}
-                  className="mb-4 w-full break-inside-avoid rounded-2xl object-cover shadow-lg"
-                />
-              ))}
-            </div>
+            <GalleryOverlay
+              images={galleryUrls}
+              toggleId="gallery-first-modal"
+            >
+              <div className="columns-1 gap-4 md:columns-2 lg:columns-3">
+                {galleryPreview.map((image, index) => (
+                  <img
+                    key={`${image}-${index}`}
+                    src={image}
+                    alt={`Foto ${index + 1} di ${info.name}`}
+                    className="mb-4 w-full break-inside-avoid rounded-2xl object-cover shadow-lg"
+                  />
+                ))}
+              </div>
+            </GalleryOverlay>
           ) : (
             <GalleryFallback />
           )}
@@ -271,7 +281,7 @@ export default function GalleryFirstTemplate({
               Tutto quello che serve per prenotare con sicurezza.
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
                 Servizi
@@ -300,6 +310,15 @@ export default function GalleryFirstTemplate({
                 Cancellazione
               </p>
               <p className="mt-4 text-sm text-slate-600">{cancellationCopy}</p>
+            </div>
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                Regole di casa
+              </p>
+              <p className="mt-4 text-sm text-slate-600">
+                {houseRules ??
+                  "Aggiungi le regole di casa per chiarire aspettative e orari."}
+              </p>
             </div>
             <div
               id="contatti"
@@ -335,6 +354,36 @@ export default function GalleryFirstTemplate({
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="bg-slate-50 py-12">
+        <div className="mx-auto max-w-6xl space-y-8 px-6">
+          <div className="space-y-2">
+            <h2 className="font-display text-2xl md:text-3xl">FAQ</h2>
+            <p className="text-sm text-slate-600">
+              Risposte rapide per chi vuole prenotare.
+            </p>
+          </div>
+          {faqItems.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {faqItems.map((faq) => (
+                <details
+                  key={faq.question}
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3"
+                >
+                  <summary className="cursor-pointer text-sm font-semibold text-slate-800">
+                    {faq.question}
+                  </summary>
+                  <p className="mt-2 text-sm text-slate-600">{faq.answer}</p>
+                </details>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Aggiungi le domande frequenti per ridurre i dubbi.
+            </p>
+          )}
         </div>
       </section>
 

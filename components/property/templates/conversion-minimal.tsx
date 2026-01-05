@@ -5,9 +5,9 @@ import {
   EXTRA_KEYWORDS,
   KITCHEN_KEYWORDS,
   GalleryFallback,
+  GalleryOverlay,
   StickyCta,
   categorizeServices,
-  defaultFaqs,
   formatCapacity,
   getMicroUsp,
   getContactLines,
@@ -22,6 +22,7 @@ export default function ConversionMinimalTemplate({
   gallery,
   position,
   contact,
+  faqs,
 }: PropertyTemplateProps) {
   const description = info.description?.trim();
   const excerpt =
@@ -30,7 +31,10 @@ export default function ConversionMinimalTemplate({
       : description ?? "Descrizione in arrivo. Aggiungi una breve panoramica.";
   const paragraphs = getDescriptionParagraphs(description, 3);
   const galleryUrls = getGalleryUrls(gallery);
+  const galleryPreview = galleryUrls.slice(0, 6);
   const contactLines = getContactLines(contact);
+  const houseRules = info.houseRules?.trim();
+  const faqItems = faqs ?? [];
   const cancellationCopy =
     info.cancellationPolicy?.trim() ??
     "Politica flessibile: contattaci per personalizzare la cancellazione.";
@@ -181,16 +185,21 @@ export default function ConversionMinimalTemplate({
             </p>
           </div>
           {galleryUrls.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {galleryUrls.map((image, index) => (
-                <img
-                  key={`${image}-${index}`}
-                  src={image}
-                  alt={`Gallery ${index + 1} di ${info.name}`}
-                  className="h-56 w-full rounded-2xl object-cover"
-                />
-              ))}
-            </div>
+            <GalleryOverlay
+              images={galleryUrls}
+              toggleId="conversion-minimal-modal"
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                {galleryPreview.map((image, index) => (
+                  <img
+                    key={`${image}-${index}`}
+                    src={image}
+                    alt={`Gallery ${index + 1} di ${info.name}`}
+                    className="h-56 w-full rounded-2xl object-cover"
+                  />
+                ))}
+              </div>
+            </GalleryOverlay>
           ) : (
             <GalleryFallback />
           )}
@@ -234,19 +243,25 @@ export default function ConversionMinimalTemplate({
               Le risposte principali per decidere subito.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {defaultFaqs.map((faq) => (
-              <details
-                key={faq.question}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3"
-              >
-                <summary className="cursor-pointer text-sm font-semibold text-slate-800">
-                  {faq.question}
-                </summary>
-                <p className="mt-2 text-sm text-slate-600">{faq.answer}</p>
-              </details>
-            ))}
-          </div>
+          {faqItems.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {faqItems.map((faq) => (
+                <details
+                  key={faq.question}
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3"
+                >
+                  <summary className="cursor-pointer text-sm font-semibold text-slate-800">
+                    {faq.question}
+                  </summary>
+                  <p className="mt-2 text-sm text-slate-600">{faq.answer}</p>
+                </details>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Nessuna FAQ inserita. Aggiungi le risposte piu comuni.
+            </p>
+          )}
         </div>
       </section>
 
@@ -260,7 +275,7 @@ export default function ConversionMinimalTemplate({
               Policy chiare e un contatto diretto per ogni richiesta.
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
                 Servizi chiave
@@ -288,6 +303,15 @@ export default function ConversionMinimalTemplate({
                 Cancellazione
               </p>
               <p className="mt-4 text-sm text-slate-600">{cancellationCopy}</p>
+            </div>
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                Regole di casa
+              </p>
+              <p className="mt-4 text-sm text-slate-600">
+                {houseRules ??
+                  "Inserisci le regole principali per evitare incomprensioni."}
+              </p>
             </div>
             <div
               id="contatti"

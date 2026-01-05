@@ -1,4 +1,3 @@
-import { Property } from "@/components/property/queries";
 import {
   Card,
   CardDescription,
@@ -6,7 +5,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import { PropertySchema } from "@/components/property/schema";
+import {
+  PropertySchema,
+  PropertyWithDetails,
+} from "@/components/property/schema";
 import { EyeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";

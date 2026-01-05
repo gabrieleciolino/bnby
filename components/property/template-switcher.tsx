@@ -300,6 +300,7 @@ export default function TemplateSwitcher() {
   const gallery = useWatch({ control, name: "gallery" });
   const position = useWatch({ control, name: "position" });
   const contact = useWatch({ control, name: "contact" });
+  const faqs = useWatch({ control, name: "faqs" });
 
   useEffect(() => {
     const createdUrls: string[] = [];
@@ -326,6 +327,7 @@ export default function TemplateSwitcher() {
       rooms: 1,
       bathrooms: 1,
       guests: 2,
+      houseRules: "",
       cancellationPolicy: "",
     };
 
@@ -336,14 +338,16 @@ export default function TemplateSwitcher() {
         rooms: safeInfo.rooms ?? 1,
         bathrooms: safeInfo.bathrooms ?? 1,
         guests: safeInfo.guests ?? 2,
+        houseRules: safeInfo.houseRules ?? "",
         cancellationPolicy: safeInfo.cancellationPolicy ?? "",
       },
       services: services ?? [],
       gallery: previewGallery,
       position: position ?? undefined,
       contact: contact ?? undefined,
+      faqs: faqs ?? [],
     };
-  }, [info, services, previewGallery, position, contact]);
+  }, [info, services, previewGallery, position, contact, faqs]);
 
   const activeTemplate =
     templateOptions.find((template) => template.id === selectedTemplate) ??

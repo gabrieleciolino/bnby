@@ -134,7 +134,10 @@ export default function ImportFromHtmlSheet() {
           </SheetTitle>
         </SheetHeader>
         <div className="p-4 space-y-4">
-          <Select value={source} onValueChange={setSource}>
+          <Select
+            value={source}
+            onValueChange={(value) => setSource(value as "airbnb" | "booking")}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Seleziona la sorgente" />
             </SelectTrigger>

@@ -1,6 +1,7 @@
 import type { PropertySchema } from "@/components/property/schema";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 export type PropertyTemplateProps = PropertySchema;
 
@@ -375,6 +376,60 @@ export function StickyCta({
         <Button asChild className="w-full">
           <a href={href}>{label}</a>
         </Button>
+      </div>
+    </div>
+  );
+}
+
+export function GalleryOverlay({
+  images,
+  toggleId,
+  buttonLabel = "Mostra altre foto",
+  children,
+}: {
+  images: string[];
+  toggleId: string;
+  buttonLabel?: string;
+  children: ReactNode;
+}) {
+  const hasOverflow = images.length > 6;
+
+  if (!hasOverflow) {
+    return <>{children}</>;
+  }
+
+  return (
+    <div className="relative">
+      <input id={toggleId} type="checkbox" className="peer sr-only" />
+      {children}
+      <div className="mt-6 flex justify-center">
+        <Button asChild variant="outline">
+          <label htmlFor={toggleId}>{buttonLabel}</label>
+        </Button>
+      </div>
+      <div className="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 px-4 py-6 peer-checked:flex">
+        <div className="relative max-h-full w-full max-w-6xl overflow-hidden rounded-3xl bg-background text-foreground shadow-2xl">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+              Galleria completa
+            </p>
+            <Button asChild variant="outline" size="sm">
+              <label htmlFor={toggleId}>Chiudi</label>
+            </Button>
+          </div>
+          <div className="max-h-[80vh] overflow-y-auto p-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {images.map((image, index) => (
+                <img
+                  key={`${image}-${index}`}
+                  src={image}
+                  alt={`Gallery ${index + 1}`}
+                  className="h-56 w-full rounded-2xl object-cover"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

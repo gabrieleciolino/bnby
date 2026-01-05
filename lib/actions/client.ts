@@ -1,13 +1,12 @@
 import { createSafeActionClient } from "next-safe-action";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const actionClient = createSafeActionClient();
 
 export const publicActionClient = actionClient.use(
   async ({ next, clientInput }) => {
     const formData = new FormData();
-
-    console.log(clientInput, typeof clientInput);
 
     const input = clientInput as Record<string, string>;
 
@@ -31,6 +30,26 @@ export const authActionClient = publicActionClient.use(
       throw new Error("Unauthorized");
     }
 
-    return next({ ctx: { ...ctx, user: data.claims } });
+    const { data: accountData, error: accountError } = await supabase
+      .from("account")
+      .select("*")
+      .eq("user_id", data.claims.sub)
+      .single();
+
+    if (accountError) {
+      throw new Error(accountError.message);
+    }
+
+    return next({ ctx: { ...ctx, user: data.claims, account: accountData } });
   }
 );
+
+export const adminActionClient = authActionClient.use(async ({ next, ctx }) => {
+  const { user, account } = ctx;
+
+  if (!account?.is_admin) {
+    throw new Error("Unauthorized");
+  }
+
+  return next({ ctx: { ...ctx, supabase: supabaseAdmin } });
+});

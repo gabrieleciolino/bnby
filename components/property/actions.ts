@@ -1,7 +1,12 @@
 "use server";
 
-import { propertySchema } from "@/components/property/schema";
-import { authActionClient } from "@/lib/actions/client";
+import {
+  createOwnerUserSchema,
+  propertySchema,
+  PropertySchema,
+} from "@/components/property/schema";
+import { adminActionClient, authActionClient } from "@/lib/actions/client";
+import { z } from "zod";
 
 export const addPropertyAction = authActionClient
   .inputSchema(propertySchema)
@@ -33,7 +38,6 @@ export const addPropertyAction = authActionClient
       .from("property")
       .insert({
         details,
-        user_id: user.sub,
       })
       .select()
       .single();
@@ -119,6 +123,10 @@ export const editPropertyAction = authActionClient
     const { supabase, user } = ctx;
     const { id, ...data } = parsedInput;
 
+    if (!id) {
+      throw new Error("ID della proprietà non trovato");
+    }
+
     const { data: propertyData, error: propertyError } = await supabase
       .from("property")
       .select("*")
@@ -132,7 +140,7 @@ export const editPropertyAction = authActionClient
     const { data: updatedData, error: updatedError } = await supabase
       .from("property")
       .update({
-        details: data,
+        details: data as PropertySchema,
       })
       .eq("id", id)
       .select()
@@ -143,4 +151,59 @@ export const editPropertyAction = authActionClient
     }
 
     return updatedData;
+  });
+
+export const createOwnerUserAction = adminActionClient
+  .inputSchema(
+    z.object({
+      email: z.email(),
+      password: z.string().min(8),
+      propertyId: z.string(),
+    })
+  )
+  .action(async ({ ctx, parsedInput }) => {
+    const { supabase } = ctx;
+
+    const { data, error } = await supabase.auth.admin.createUser({
+      email: parsedInput.email,
+      password: parsedInput.password,
+      email_confirm: true,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const { data: accountData, error: accountError } = await supabase
+      .from("account")
+      .insert({
+        user_id: data.user.id,
+        is_admin: false,
+      })
+      .select()
+      .single();
+
+    if (accountError || !accountData) {
+      throw new Error(
+        accountError?.message ?? "Errore durante la creazione dell'account"
+      );
+    }
+
+    const { data: propertyData, error: propertyError } = await supabase
+      .from("property")
+      .update({
+        user_id: data.user.id,
+      })
+      .eq("id", parsedInput.propertyId)
+      .select()
+      .single();
+
+    if (propertyError) {
+      throw new Error(propertyError.message);
+    }
+
+    return {
+      user: data.user,
+      account: accountData,
+    };
   });

@@ -1,13 +1,17 @@
 import ProtectedWrapper from "@/app/(authenticated)/wrapper";
-import { getPropertiesQuery } from "@/components/property/queries";
-import { PropertiesList } from "@/components/property/properties-list";
+import {
+  getCurrentPropertyQuery,
+  getPropertiesQuery,
+} from "@/components/property/queries";
+import PropertyForm from "@/components/property/property-form";
+import { PropertyWithDetails } from "@/components/property/schema";
 
 export default async function DashboardPage() {
-  const properties = await getPropertiesQuery();
+  const property = await getCurrentPropertyQuery();
 
   return (
-    <ProtectedWrapper title="Dashboard">
-      <div>Dashboard</div>
+    <ProtectedWrapper title="Proprietà">
+      <PropertyForm property={property as PropertyWithDetails} />
     </ProtectedWrapper>
   );
 }

@@ -6,6 +6,7 @@ import {
   EXTRA_KEYWORDS,
   SPACE_KEYWORDS,
   GalleryFallback,
+  GalleryOverlay,
   StickyCta,
   categorizeServices,
   formatCapacity,
@@ -21,8 +22,10 @@ export default function StoryExperienceTemplate({
   gallery,
   position,
   contact,
+  faqs,
 }: PropertyTemplateProps) {
   const galleryUrls = getGalleryUrls(gallery);
+  const galleryPreview = galleryUrls.slice(0, 6);
   const description =
     info.description?.trim() ??
     "Racconta qui l'atmosfera della casa, i ritmi lenti e le esperienze che si possono vivere nei dintorni.";
@@ -37,6 +40,8 @@ export default function StoryExperienceTemplate({
     { label: "Extra", keywords: EXTRA_KEYWORDS },
   ]);
   const contactLines = getContactLines(contact);
+  const houseRules = info.houseRules?.trim();
+  const faqItems = faqs ?? [];
   const cancellationCopy =
     info.cancellationPolicy?.trim() ??
     "Cancellazione flessibile su richiesta. Scrivici per i dettagli.";
@@ -136,43 +141,49 @@ export default function StoryExperienceTemplate({
             </p>
           </div>
           {galleryUrls.length > 0 ? (
-            <div className="space-y-10">
-              {galleryUrls.map((image, index) => {
-                const caption = captions[index % captions.length];
-                const isReversed = index % 2 !== 0;
+            <GalleryOverlay
+              images={galleryUrls}
+              toggleId="story-experience-modal"
+              buttonLabel="Mostra tutta la gallery"
+            >
+              <div className="space-y-10">
+                {galleryPreview.map((image, index) => {
+                  const caption = captions[index % captions.length];
+                  const isReversed = index % 2 !== 0;
 
-                return (
-                  <div
-                    key={`${image}-${index}`}
-                    className={cn(
-                      "grid items-center gap-8 md:grid-cols-[1.2fr_0.8fr]",
-                      isReversed && "md:grid-cols-[0.8fr_1.2fr]"
-                    )}
-                  >
-                    <img
-                      src={image}
-                      alt={`Dettaglio ${index + 1} di ${info.name}`}
-                      className={`h-80 w-full rounded-3xl object-cover shadow-xl ${
-                        isReversed ? "md:order-2" : ""
-                      }`}
-                    />
+                  return (
                     <div
-                      className={`space-y-3 ${
-                        isReversed ? "md:order-1" : ""
-                      }`}
+                      key={`${image}-${index}`}
+                      className={cn(
+                        "grid items-center gap-8 md:grid-cols-[1.2fr_0.8fr]",
+                        isReversed && "md:grid-cols-[0.8fr_1.2fr]"
+                      )}
                     >
-                      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-700/70">
-                        Capitolo {index + 1}
-                      </p>
-                      <p className="text-lg font-medium text-slate-800">
-                        {caption}
-                      </p>
-                      <p className="text-sm text-slate-600">{storySnippet}</p>
+                      <img
+                        src={image}
+                        alt={`Dettaglio ${index + 1} di ${info.name}`}
+                        className={`h-80 w-full rounded-3xl object-cover shadow-xl ${
+                          isReversed ? "md:order-2" : ""
+                        }`}
+                      />
+                      <div
+                        className={`space-y-3 ${
+                          isReversed ? "md:order-1" : ""
+                        }`}
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-700/70">
+                          Capitolo {index + 1}
+                        </p>
+                        <p className="text-lg font-medium text-slate-800">
+                          {caption}
+                        </p>
+                        <p className="text-sm text-slate-600">{storySnippet}</p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            </GalleryOverlay>
           ) : (
             <GalleryFallback />
           )}
@@ -263,7 +274,7 @@ export default function StoryExperienceTemplate({
               Una chiusura chiara, con assistenza reale.
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-3xl border border-amber-100 bg-white p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-700/70">
                 Servizi chiave
@@ -291,6 +302,15 @@ export default function StoryExperienceTemplate({
                 Cancellazione
               </p>
               <p className="mt-4 text-sm text-slate-700">{cancellationCopy}</p>
+            </div>
+            <div className="rounded-3xl border border-amber-100 bg-white p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-700/70">
+                Regole di casa
+              </p>
+              <p className="mt-4 text-sm text-slate-700">
+                {houseRules ??
+                  "Aggiungi le regole di casa per chiarire orari e limiti."}
+              </p>
             </div>
             <div
               id="contatti"
@@ -326,6 +346,36 @@ export default function StoryExperienceTemplate({
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="bg-white/70 py-12">
+        <div className="mx-auto max-w-6xl space-y-8 px-6">
+          <div className="space-y-2">
+            <h2 className="font-display text-2xl md:text-3xl">FAQ</h2>
+            <p className="text-sm text-slate-600">
+              Domande frequenti per arrivare preparati.
+            </p>
+          </div>
+          {faqItems.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {faqItems.map((faq) => (
+                <details
+                  key={faq.question}
+                  className="rounded-2xl border border-amber-100 bg-white px-4 py-3"
+                >
+                  <summary className="cursor-pointer text-sm font-semibold text-slate-800">
+                    {faq.question}
+                  </summary>
+                  <p className="mt-2 text-sm text-slate-600">{faq.answer}</p>
+                </details>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Inserisci FAQ per guidare gli ospiti prima dell'arrivo.
+            </p>
+          )}
         </div>
       </section>
 

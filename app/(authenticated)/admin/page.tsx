@@ -4,6 +4,7 @@ import { PropertiesList } from "@/components/property/properties-list";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { urls } from "@/lib/urls";
+import { PropertyWithDetails } from "@/components/property/schema";
 
 export default async function AdminPage() {
   const properties = await getPropertiesQuery();
@@ -17,7 +18,7 @@ export default async function AdminPage() {
         </Button>
       }
     >
-      <PropertiesList properties={properties ?? []} />
+      <PropertiesList properties={properties as PropertyWithDetails[]} />
     </ProtectedWrapper>
   );
 }
