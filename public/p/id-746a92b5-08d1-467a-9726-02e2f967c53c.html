@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it" data-template-palette="sabbia" data-template-font-title="playfair" data-template-font-body="inter" data-template-gallery="grid">
+<html lang="it" data-template-mode="dark" data-template-palette="grafite" data-template-font-title="playfair" data-template-font-body="inter" data-template-gallery="grid">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,18 +9,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
       :root {
-        --ink: #2f2a24;
-        --muted: #6f665c;
-        --accent: #d59a62;
-        --accent-strong: #b9773f;
-        --bg: #f8f2e9;
-        --card: #ffffff;
-        --shadow: 0 20px 50px rgba(14, 20, 24, 0.15);
+        --ink: #f2f3f4;
+        --muted: #c1c6cc;
+        --accent: #9aa7ff;
+        --accent-strong: #7b89f0;
+        --bg: #101317;
+        --card: #1a2027;
+        --on-accent: #fefcf8;
+        --accent-shadow: rgba(154, 167, 255, 0.28);
+        --line: rgba(255, 255, 255, 0.16);
+        --line-soft: rgba(255, 255, 255, 0.08);
+        --field-bg: rgba(255, 255, 255, 0.06);
+        --field-border: rgba(255, 255, 255, 0.2);
+        --card-muted: rgba(255, 255, 255, 0.06);
+        --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.45);
+        --shadow-md: 0 18px 35px rgba(0, 0, 0, 0.5);
+        --shadow-lg: 0 22px 45px rgba(0, 0, 0, 0.6);
+        --shadow-xl: 0 28px 60px rgba(0, 0, 0, 0.65);
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        --map-accent: rgba(154, 167, 255, 0.25);
+        --map-accent-alt: rgba(123, 137, 240, 0.2);
+        --modal-bg: #0b0f12;
+        --modal-ink: #f2f2f2;
+        --modal-frame: #080b0e;
+        --footer-bg: #1a2430;
+        --footer-ink: #fefcf8;
+        --footer-note: rgba(255, 255, 255, 0.7);
         --radius-lg: 24px;
         --radius-md: 16px;
         --radius-sm: 10px;
         --font-heading: "Playfair Display", "Georgia", serif;
         --font-body: "Inter", "Helvetica Neue", sans-serif;
+        color-scheme: dark;
       }
 
       * {
@@ -159,8 +179,8 @@
 
       .btn-primary {
         background: var(--accent);
-        color: #1b1208;
-        box-shadow: 0 12px 25px rgba(214, 154, 91, 0.35);
+        color: var(--on-accent);
+        box-shadow: 0 12px 25px var(--accent-shadow);
       }
 
       .btn-primary:hover {
@@ -174,9 +194,9 @@
       }
 
       .contact-card .btn-outline {
-        border-color: rgba(15, 20, 24, 0.18);
+        border-color: var(--line);
         color: var(--ink);
-        background: rgba(255, 255, 255, 0.6);
+        background: var(--card-muted);
       }
 
       .btn:hover {
@@ -221,7 +241,7 @@
         background: var(--card);
         border-radius: var(--radius-md);
         padding: 18px 16px;
-        box-shadow: 0 12px 30px rgba(15, 20, 24, 0.08);
+        box-shadow: var(--shadow-soft);
         font-weight: 600;
         text-align: center;
         display: flex;
@@ -242,7 +262,7 @@
 
       .service-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 18px 40px rgba(15, 20, 24, 0.15);
+        box-shadow: var(--shadow-md);
       }
 
       .gallery-grid {
@@ -288,8 +308,8 @@
       .gallery-card {
         border-radius: var(--radius-md);
         overflow: hidden;
-        box-shadow: 0 18px 35px rgba(16, 20, 24, 0.12);
-        background: #f4eee6;
+        box-shadow: var(--shadow-md);
+        background: var(--card);
         border: none;
         padding: 0;
         text-align: left;
@@ -306,7 +326,7 @@
 
       .gallery-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 22px 45px rgba(16, 20, 24, 0.16);
+        box-shadow: var(--shadow-lg);
       }
 
       .gallery-card:hover img {
@@ -348,8 +368,8 @@
         z-index: 2;
         width: min(1200px, 96vw);
         height: min(92vh, 980px);
-        background: #0f1418;
-        color: #f8f2e9;
+        background: var(--modal-bg);
+        color: var(--modal-ink);
         border-radius: 18px;
         display: flex;
         flex-direction: column;
@@ -384,7 +404,7 @@
         width: auto;
         object-fit: contain;
         border-radius: 12px;
-        background: #0b0f12;
+        background: var(--modal-frame);
       }
 
       .gallery-arrow {
@@ -565,7 +585,7 @@
         background: var(--card);
         border-radius: var(--radius-md);
         padding: 24px;
-        box-shadow: 0 18px 35px rgba(16, 20, 24, 0.12);
+        box-shadow: var(--shadow-md);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
 
@@ -573,7 +593,7 @@
       .position-panel:hover,
       .contact-panel:hover {
         transform: translateY(-3px);
-        box-shadow: 0 22px 45px rgba(16, 20, 24, 0.16);
+        box-shadow: var(--shadow-lg);
       }
 
       .description-stats {
@@ -588,7 +608,7 @@
       }
 
       .description-stat + .description-stat {
-        border-left: 1px solid rgba(15, 20, 24, 0.12);
+        border-left: 1px solid var(--line);
       }
 
       .stat-value {
@@ -612,7 +632,7 @@
       }
 
       .description-extra {
-        border-top: 1px solid rgba(15, 20, 24, 0.08);
+        border-top: 1px solid var(--line-soft);
         padding-top: 16px;
       }
 
@@ -631,7 +651,7 @@
         margin-top: 18px;
         height: 200px;
         border-radius: var(--radius-md);
-        background: linear-gradient(120deg, rgba(214, 154, 91, 0.2), rgba(39, 62, 71, 0.15));
+        background: linear-gradient(120deg, var(--map-accent), var(--map-accent-alt));
         overflow: hidden;
       }
 
@@ -686,11 +706,11 @@
       .contact-form textarea {
         width: 100%;
         border-radius: 12px;
-        border: 1px solid rgba(15, 20, 24, 0.12);
+        border: 1px solid var(--field-border);
         padding: 12px 14px;
         font-family: inherit;
         font-size: 0.95rem;
-        background: #fff;
+        background: var(--field-bg);
         color: var(--ink);
       }
 
@@ -704,7 +724,7 @@
         gap: 10px;
         padding: 18px 16px;
         border-radius: var(--radius-md);
-        background: rgba(255, 255, 255, 0.7);
+        background: var(--card-muted);
       }
 
       .contact-label {
@@ -737,13 +757,13 @@
         border-radius: var(--radius-md);
         background: var(--card);
         padding: 16px 20px;
-        box-shadow: 0 16px 35px rgba(16, 20, 24, 0.08);
+        box-shadow: var(--shadow-soft);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
 
       .faq-item:hover {
         transform: translateY(-3px);
-        box-shadow: 0 20px 40px rgba(16, 20, 24, 0.12);
+        box-shadow: var(--shadow-md);
       }
 
       .faq-item summary {
@@ -767,8 +787,8 @@
       }
 
       .footer-card {
-        background: #1f2426;
-        color: #fefcf8;
+        background: var(--footer-bg);
+        color: var(--footer-ink);
         border-radius: var(--radius-lg);
         padding: clamp(28px, 4vw, 40px);
         display: grid;
@@ -779,7 +799,7 @@
 
       .footer-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 28px 60px rgba(0, 0, 0, 0.25);
+        box-shadow: var(--shadow-xl);
       }
 
       [data-reveal] {
@@ -830,7 +850,7 @@
       }
 
       .footer-note {
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--footer-note);
         font-size: 0.85rem;
       }
     </style>
@@ -854,7 +874,6 @@
       </div>
     </header>
   
-    
     <section id="descrizione">
       <div class="section-header" data-reveal>
         <h2>Descrizione</h2>
@@ -889,7 +908,6 @@
       </div>
     </section>
   
-
     <section id="servizi">
       <div class="section-header" data-reveal>
         <h2>Servizi</h2>
@@ -917,7 +935,7 @@
                 <span>Vista mare</span>
               </li></ul>
     </section>
-
+  
     <section id="galleria">
       <div class="section-header" data-reveal>
         <h2>Galleria</h2>
@@ -960,7 +978,7 @@
       </div>
       
     </section>
-
+  
     <section id="posizione">
       <div class="section-header" data-reveal>
         <h2>Posizione</h2>
@@ -981,8 +999,7 @@
         </a>
       </div>
     </section>
-
-    
+  
     <section id="contatti">
       <div class="section-header" data-reveal>
         <h2>Contatti</h2>
@@ -1019,9 +1036,6 @@
       </div>
     </section>
   
-
-    
-
     <footer id="footer">
       <div class="footer-card" data-reveal>
         <h3>Pronto a soggiornare?</h3>
@@ -1033,6 +1047,7 @@
         
       </div>
     </footer>
+  
     
       <div class="gallery-modal" data-gallery-modal aria-hidden="true" role="dialog" aria-label="Galleria foto">
         <div class="gallery-modal-backdrop" data-gallery-close></div>

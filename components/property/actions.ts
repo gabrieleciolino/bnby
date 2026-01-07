@@ -466,3 +466,45 @@ export const publishPropertyTemplateAction = authActionClient
       path: `/p/${filename}`,
     };
   });
+
+export const savePropertyTemplateAction = authActionClient
+  .inputSchema(
+    z.object({
+      propertyId: z.string().uuid(),
+      template: z.string(),
+    })
+  )
+  .action(async ({ ctx, parsedInput }) => {
+    const { supabase, user, account } = ctx;
+    const { propertyId, template } = parsedInput;
+    const normalizedTemplate = template?.trim() ? template : null;
+
+    const { data: propertyData, error: propertyError } = await supabase
+      .from("property")
+      .select("id, user_id")
+      .eq("id", propertyId)
+      .single();
+
+    if (propertyError || !propertyData) {
+      throw new Error(propertyError?.message ?? "Proprieta non trovata");
+    }
+
+    if (!account?.is_admin && propertyData.user_id !== user.sub) {
+      throw new Error("Unauthorized");
+    }
+
+    const { error: updateError } = await supabase
+      .from("property")
+      .update({
+        template: normalizedTemplate,
+      })
+      .eq("id", propertyId);
+
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
+
+    return {
+      template: normalizedTemplate ?? "",
+    };
+  });
