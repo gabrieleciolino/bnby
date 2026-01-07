@@ -14,7 +14,7 @@ export default async function PropertyPage({
 
   return (
     <ProtectedWrapper title="Proprietà">
-      <PropertyForm property={property as PropertyWithDetails} />
+      <PropertyForm property={property as PropertyWithDetails} isAdmin />
     </ProtectedWrapper>
   );
 }

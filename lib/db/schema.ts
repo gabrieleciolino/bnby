@@ -32,6 +32,7 @@ export const propertyTable = pgTable("property", {
   id: uuid("id").primaryKey().defaultRandom(),
   details: jsonb("details").notNull().$type<PropertyDetailsSchema>(),
   template: text("template"),
+  isPublished: boolean("is_published").notNull().default(false),
 
   userId: uuid("user_id").references(() => authUsers.id),
 

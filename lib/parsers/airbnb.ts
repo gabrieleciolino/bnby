@@ -260,7 +260,10 @@ const parseCounts = (labels: string[]) => {
       guests = value;
       continue;
     }
-    if (rooms === undefined && lower.includes("camera")) {
+    if (
+      rooms === undefined &&
+      /(camer|stanza|bedroom)/.test(lower)
+    ) {
       rooms = value;
       continue;
     }

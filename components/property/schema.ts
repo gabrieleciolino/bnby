@@ -6,6 +6,7 @@ const gallerySchema = z.array(z.union([z.instanceof(File), z.string()]));
 
 export const propertySchema = z.object({
   id: z.string().optional(),
+  slug: z.string().trim().min(1),
   info: z.object({
     name: z.string().min(1),
     description: z.string().min(1).optional(),

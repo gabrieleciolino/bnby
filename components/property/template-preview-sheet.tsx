@@ -38,7 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  publishPropertyTemplateAction,
+  setPropertyPublishedAction,
   savePropertyTemplateAction,
 } from "@/components/property/actions";
 import { toast } from "sonner";
@@ -99,7 +99,15 @@ const normalizeSectionOrder = (order?: BlockKey[]) => {
   return [...base, ...missing];
 };
 
-export default function TemplatePreviewSheet() {
+type TemplatePreviewSheetProps = {
+  isAdmin?: boolean;
+  initialIsPublished?: boolean;
+};
+
+export default function TemplatePreviewSheet({
+  isAdmin = false,
+  initialIsPublished = false,
+}: TemplatePreviewSheetProps) {
   const { watch, setValue } = useFormContext<PropertyFormValues>();
   const [previewMode, setPreviewMode] = useState<
     "desktop" | "tablet" | "mobile"
@@ -107,13 +115,11 @@ export default function TemplatePreviewSheet() {
   const [theme, setTheme] = useState<TemplateTheme>(defaultTemplateTheme);
   const [editableHtml, setEditableHtml] = useState("");
   const [isManualEdit, setIsManualEdit] = useState(false);
-  const [publishedHtml, setPublishedHtml] = useState<string | null>(null);
-  const [publishedPath, setPublishedPath] = useState<string | null>(null);
+  const [isPublished, setIsPublished] = useState(initialIsPublished);
   const [localUpdatedAt, setLocalUpdatedAt] = useState<Date | null>(null);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
-  const [publishedAt, setPublishedAt] = useState<Date | null>(null);
   const [isSaving, startSaving] = useTransition();
-  const [isPublishing, startPublishing] = useTransition();
+  const [isPublishingLanding, startPublishingLanding] = useTransition();
 
   const info = watch("info");
   const gallery = watch("gallery");
@@ -125,6 +131,11 @@ export default function TemplatePreviewSheet() {
   const landingCopy = landing?.copy;
   const templateValue = watch("template") ?? "";
   const propertyId = watch("id");
+  const slug = (watch("slug") ?? "").trim();
+
+  useEffect(() => {
+    setIsPublished(initialIsPublished);
+  }, [initialIsPublished]);
 
   const previewImages = useMemo(
     () => buildPreviewImages(gallery),
@@ -196,17 +207,14 @@ export default function TemplatePreviewSheet() {
   const baselineHtml = templateValue.trim()
     ? templateValue
     : defaultTemplateHtml;
-  const previewHtml = editableHtml || templateHtml;
+  const previewDocHtml = editableHtml || templateHtml;
   const isDirty = editableHtml !== baselineHtml;
   const isBlank = editableHtml.trim().length === 0;
-  const publishHtml = templateValue.trim()
-    ? templateValue
-    : defaultTemplateHtml;
-  const normalizeHtml = (value: string | null) => value?.trim() ?? "";
-  const hasUnpublishedChanges =
-    normalizeHtml(publishedHtml) !== normalizeHtml(publishHtml);
   const isLocalDraft = isDirty;
-  const canPublish = Boolean(propertyId) && !isLocalDraft;
+  const hasValidSlug = Boolean(slug);
+  const canTogglePublish = Boolean(propertyId) && hasValidSlug;
+  const previewPath = hasValidSlug ? `/p/${slug}.html` : null;
+  const landingPath = hasValidSlug ? `/l/${slug}` : null;
   const templateLabel = !propertyId
     ? "Template non salvato"
     : isLocalDraft
@@ -217,33 +225,6 @@ export default function TemplatePreviewSheet() {
     () => (gallery ?? []).some((item) => item instanceof File),
     [gallery]
   );
-
-  useEffect(() => {
-    if (!propertyId) {
-      setPublishedHtml(null);
-      setPublishedPath(null);
-      setPublishedAt(null);
-      return;
-    }
-    const path = `/p/id-${propertyId}.html`;
-    setPublishedPath(path);
-    fetch(path, { cache: "no-store" })
-      .then((response) => {
-        if (!response.ok) {
-          setPublishedHtml(null);
-          return null;
-        }
-        return response.text();
-      })
-      .then((html) => {
-        if (typeof html === "string") {
-          setPublishedHtml(html);
-        }
-      })
-      .catch(() => {
-        setPublishedHtml(null);
-      });
-  }, [propertyId]);
 
   useEffect(() => {
     if (templateValue.trim()) {
@@ -386,9 +367,11 @@ export default function TemplatePreviewSheet() {
     ? "Crea la proprieta per poter salvare il template."
     : isLocalDraft
       ? "Stai vedendo la bozza locale. Premi Salva per salvarla nel template."
-      : hasUnpublishedChanges
-        ? "Template salvato ma non pubblicato. Premi Pubblica per renderlo visibile."
-        : "Template pubblicato e aggiornato.";
+      : isPublished
+        ? "Landing pubblicata e aggiornata."
+        : isAdmin
+          ? "Landing non pubblicata. Usa il toggle per renderla visibile."
+          : "Landing non pubblicata. Attendi la pubblicazione dell'admin.";
 
   const previewLabel = !propertyId || isLocalDraft
     ? "Anteprima: bozza locale"
@@ -417,42 +400,51 @@ export default function TemplatePreviewSheet() {
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border bg-muted/30 p-4">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${
-                    isLocalDraft
-                      ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
-                      : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
-                  }`}
-                >
-                  Bozza locale {isLocalDraft ? "attiva" : "allineata"}
-                </span>
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${
-                    !propertyId || isLocalDraft
-                      ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
-                      : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
-                  }`}
-                >
-                  {templateLabel}
-                </span>
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${
-                    !propertyId || hasUnpublishedChanges
-                      ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
-                      : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
-                  }`}
-                >
-                  {propertyId
-                    ? hasUnpublishedChanges
-                      ? "Da pubblicare"
-                      : "Pubblicato"
-                    : "Pubblicazione disattiva"}
-                </span>
+                {isAdmin ? (
+                  <>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${
+                        isLocalDraft
+                          ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
+                          : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
+                      }`}
+                    >
+                      Bozza locale {isLocalDraft ? "attiva" : "allineata"}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${
+                        !propertyId || isLocalDraft
+                          ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
+                          : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
+                      }`}
+                    >
+                      {templateLabel}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${
+                        !propertyId || !isPublished
+                          ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
+                          : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
+                      }`}
+                    >
+                      {propertyId
+                        ? isPublished
+                          ? "Landing pubblicata"
+                          : "Landing non pubblicata"
+                        : "Pubblicazione disattiva"}
+                    </span>
+                  </>
+                ) : (
+                  isLocalDraft && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-700">
+                      Modifiche non salvate
+                    </span>
+                  )
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                 <span>Modifica locale: {formatTime(localUpdatedAt)}</span>
                 <span>Salvataggio template: {formatTime(savedAt)}</span>
-                <span>Pubblicazione: {formatTime(publishedAt)}</span>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -527,36 +519,48 @@ export default function TemplatePreviewSheet() {
               >
                 {isSaving ? "Salvo..." : "Salva"}
               </Button>
-              <Button
-                type="button"
-                variant={hasUnpublishedChanges ? "default" : "outline"}
-                size="sm"
-                disabled={!canPublish || isPublishing}
-                onClick={() => {
-                  if (!propertyId) return;
-                  startPublishing(async () => {
-                    try {
-                      const { serverError } =
-                        await publishPropertyTemplateAction({
-                          propertyId,
-                          template: publishHtml,
-                        });
+              {isAdmin && (
+                <Button
+                  type="button"
+                  variant={isPublished ? "outline" : "default"}
+                  size="sm"
+                  disabled={!canTogglePublish || isPublishingLanding}
+                  onClick={() => {
+                    if (!propertyId) return;
+                    const nextPublished = !isPublished;
+                    startPublishingLanding(async () => {
+                      try {
+                        const { serverError } =
+                          await setPropertyPublishedAction({
+                            propertyId,
+                            isPublished: nextPublished,
+                          });
 
-                      if (serverError) {
-                        throw new Error(serverError);
+                        if (serverError) {
+                          throw new Error(serverError);
+                        }
+
+                        setIsPublished(nextPublished);
+                        toast.success(
+                          nextPublished
+                            ? "Landing pubblicata"
+                            : "Landing nascosta"
+                        );
+                      } catch (error) {
+                        toast.error(
+                          "Errore durante l'aggiornamento della pubblicazione"
+                        );
                       }
-
-                      setPublishedHtml(publishHtml);
-                      setPublishedAt(new Date());
-                      toast.success("Template pubblicato");
-                    } catch (error) {
-                      toast.error("Errore durante la pubblicazione");
-                    }
-                  });
-                }}
-              >
-                {isPublishing ? "Pubblico..." : "Pubblica"}
-              </Button>
+                    });
+                  }}
+                >
+                  {isPublishingLanding
+                    ? "Aggiorno..."
+                    : isPublished
+                      ? "Nascondi landing"
+                      : "Pubblica landing"}
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="outline"
@@ -574,11 +578,11 @@ export default function TemplatePreviewSheet() {
               >
                 Ripristina
               </Button>
-              {propertyId && publishedPath && publishedHtml && (
+              {isAdmin && previewPath && (
                 <>
                   <Button asChild variant="outline" size="sm">
-                    <a href={publishedPath} target="_blank" rel="noreferrer">
-                      Apri pubblicato
+                    <a href={previewPath} target="_blank" rel="noreferrer">
+                      Apri preview
                     </a>
                   </Button>
                   <Button
@@ -586,12 +590,33 @@ export default function TemplatePreviewSheet() {
                     variant="outline"
                     size="sm"
                     onClick={async () => {
-                      const url = `${window.location.origin}${publishedPath}`;
+                      const url = `${window.location.origin}${previewPath}`;
                       await navigator.clipboard.writeText(url);
-                      toast.success("Link copiato");
+                      toast.success("Link preview copiato");
                     }}
                   >
-                    Copia link
+                    Copia link preview
+                  </Button>
+                </>
+              )}
+              {landingPath && isPublished && (
+                <>
+                  <Button asChild variant="outline" size="sm">
+                    <a href={landingPath} target="_blank" rel="noreferrer">
+                      Apri landing
+                    </a>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      const url = `${window.location.origin}${landingPath}`;
+                      await navigator.clipboard.writeText(url);
+                      toast.success("Link landing copiato");
+                    }}
+                  >
+                    Copia link landing
                   </Button>
                 </>
               )}
@@ -606,7 +631,7 @@ export default function TemplatePreviewSheet() {
             >
               <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span>{previewLabel}</span>
-                {isLocalDraft && (
+                {isLocalDraft && isAdmin && (
                   <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] text-amber-700">
                     Non salvata
                   </span>
@@ -620,7 +645,7 @@ export default function TemplatePreviewSheet() {
                   <iframe
                     title="Anteprima template"
                     className="h-full w-full bg-white"
-                    srcDoc={previewHtml}
+                    srcDoc={previewDocHtml}
                     sandbox="allow-scripts allow-same-origin"
                   />
                 </div>

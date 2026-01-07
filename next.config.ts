@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "xvjeccwizteesiefjzaf.supabase.co",
       },
+      {
+        protocol: "https",
+        hostname: "*.muscache.com",
+      },
     ],
   },
 };

@@ -97,6 +97,7 @@ export type Database = {
           created_at: string
           details: Json
           id: string
+          is_published: boolean
           template: string | null
           updated_at: string
           user_id: string | null
@@ -105,6 +106,7 @@ export type Database = {
           created_at?: string
           details: Json
           id?: string
+          is_published?: boolean
           template?: string | null
           updated_at?: string
           user_id?: string | null
@@ -113,6 +115,7 @@ export type Database = {
           created_at?: string
           details?: Json
           id?: string
+          is_published?: boolean
           template?: string | null
           updated_at?: string
           user_id?: string | null

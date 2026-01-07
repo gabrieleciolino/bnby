@@ -49,8 +49,10 @@ import TemplatePreviewSheet from "@/components/property/template-preview-sheet";
 
 export default function PropertyForm({
   property,
+  isAdmin = false,
 }: {
   property?: PropertyWithDetails;
+  isAdmin?: boolean;
 }) {
   const [isUpdatingProperty, startUpdatingProperty] = useTransition();
   const [isCreatingOwnerUser, startCreatingOwnerUser] = useTransition();
@@ -62,10 +64,11 @@ export default function PropertyForm({
     resolver: zodResolver(propertySchema),
     defaultValues: {
       id: property?.id,
+      slug: property?.details.slug ?? "",
       info: {
         name: property?.details.info.name ?? "",
         description: property?.details.info.description ?? "",
-        rooms: 1,
+        rooms: property?.details.info.rooms ?? 1,
         bathrooms: property?.details.info.bathrooms ?? 0,
         guests: property?.details.info.guests ?? 1,
         houseRules: property?.details.info.houseRules ?? "",
@@ -103,7 +106,7 @@ export default function PropertyForm({
   const onSubmit = (data: PropertyFormValues) => {
     startUpdatingProperty(async () => {
       try {
-        const { serverError, validationErrors } = property
+        const { data: updatedProperty, serverError, validationErrors } = property
           ? await editPropertyAction(data)
           : await addPropertyAction(data);
 
@@ -113,6 +116,13 @@ export default function PropertyForm({
 
         if (validationErrors) {
           throw new Error();
+        }
+
+        if (updatedProperty?.template != null) {
+          form.setValue("template", updatedProperty.template ?? "", {
+            shouldDirty: false,
+            shouldValidate: true,
+          });
         }
 
         toast.success("Proprietà aggiunta con successo");
@@ -180,9 +190,13 @@ export default function PropertyForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <input type="hidden" {...form.register("template")} />
+        {!isAdmin && <input type="hidden" {...form.register("slug")} />}
         <div className="flex flex-wrap items-center gap-3">
-          <ImportFromHtmlSheet />
-          <TemplatePreviewSheet />
+          {isAdmin && <ImportFromHtmlSheet />}
+          <TemplatePreviewSheet
+            isAdmin={isAdmin}
+            initialIsPublished={property?.is_published ?? false}
+          />
           {property && !property?.user_id && (
             <Sheet>
               <SheetTrigger asChild>
@@ -252,6 +266,21 @@ export default function PropertyForm({
                 </FormItem>
               )}
             />
+            {isAdmin && (
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slug</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="villa-giulia-bnb" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="info.description"

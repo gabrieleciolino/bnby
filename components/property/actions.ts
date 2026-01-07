@@ -6,12 +6,15 @@ import {
   PropertySchema,
   PropertyDetailsSchema,
 } from "@/components/property/schema";
+import {
+  buildPropertyLandingHtml,
+  defaultTemplateTheme,
+  extractTemplateTheme,
+} from "@/components/property/template-html";
 import { adminActionClient, authActionClient } from "@/lib/actions/client";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/db/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { promises as fs } from "fs";
-import path from "path";
 import { z } from "zod";
 
 const SUPABASE_PUBLIC_URL =
@@ -252,7 +255,31 @@ const processGalleryItems = async ({
   return uploadedImages;
 };
 
-const publishDirectory = path.join(process.cwd(), "public", "p");
+const toTemplateGalleryItems = (gallery?: PropertyDetailsSchema["gallery"]) =>
+  (gallery ?? [])
+    .filter((item): item is string => typeof item === "string")
+    .map((url, index) => ({
+      url,
+      alt: url.split("/").pop() ?? `image-${index + 1}`,
+    }));
+
+const resolveTemplateTheme = (template?: string | null) =>
+  template?.trim() ? extractTemplateTheme(template) : defaultTemplateTheme;
+
+const buildTemplateFromDetails = (
+  details: PropertyDetailsSchema,
+  template?: string | null
+) =>
+  buildPropertyLandingHtml({
+    info: details.info,
+    services: details.services ?? [],
+    gallery: toTemplateGalleryItems(details.gallery),
+    position: details.position,
+    contact: details.contact,
+    faqs: details.faqs ?? [],
+    landing: details.landing,
+    theme: resolveTemplateTheme(template),
+  });
 
 export const addPropertyAction = authActionClient
   .inputSchema(propertySchema)
@@ -260,6 +287,7 @@ export const addPropertyAction = authActionClient
     const { supabase, account } = ctx;
     const gallerySupabase = account?.is_admin ? supabaseAdmin : supabase;
     const {
+      slug,
       info: { name, description, rooms, bathrooms, guests, cancellationPolicy },
       services,
       position,
@@ -269,10 +297,10 @@ export const addPropertyAction = authActionClient
       landing,
       template,
     } = parsedInput;
-
-    const normalizedTemplate = template?.trim() ? template : null;
+    const themeTemplate = template?.trim() ? template : null;
 
     const details: PropertyDetailsSchema = {
+      slug,
       info: {
         name,
         description,
@@ -292,7 +320,7 @@ export const addPropertyAction = authActionClient
       .from("property")
       .insert({
         details,
-        template: normalizedTemplate,
+        template: null,
       })
       .select()
       .single();
@@ -308,15 +336,17 @@ export const addPropertyAction = authActionClient
       propertyId: data.id,
       galleryItems: gallery,
     });
+    const nextDetails: PropertyDetailsSchema = {
+      ...details,
+      gallery: uploadedImages,
+    };
+    const nextTemplate = buildTemplateFromDetails(nextDetails, themeTemplate);
 
     const { data: updatedData, error: updatedError } = await supabase
       .from("property")
       .update({
-        details: {
-          ...details,
-          gallery: uploadedImages,
-        },
-        template: normalizedTemplate,
+        details: nextDetails,
+        template: nextTemplate,
       })
       .eq("id", data.id)
       .select()
@@ -335,7 +365,6 @@ export const editPropertyAction = authActionClient
     const { supabase, account } = ctx;
     const gallerySupabase = account?.is_admin ? supabaseAdmin : supabase;
     const { id, template, ...data } = parsedInput;
-    const normalizedTemplate = template?.trim() ? template : null;
 
     if (!id) {
       throw new Error("ID della proprietà non trovato");
@@ -356,15 +385,19 @@ export const editPropertyAction = authActionClient
       propertyId: id,
       galleryItems: data.gallery,
     });
+    const themeTemplate =
+      template?.trim() || propertyData?.template?.trim() || null;
+    const nextDetails = {
+      ...data,
+      gallery: uploadedImages,
+    } as PropertyDetailsSchema;
+    const nextTemplate = buildTemplateFromDetails(nextDetails, themeTemplate);
 
     const { data: updatedData, error: updatedError } = await supabase
       .from("property")
       .update({
-        details: {
-          ...data,
-          gallery: uploadedImages,
-        } as PropertyDetailsSchema,
-        template: normalizedTemplate,
+        details: nextDetails,
+        template: nextTemplate,
       })
       .eq("id", id)
       .select()
@@ -432,38 +465,30 @@ export const createOwnerUserAction = adminActionClient
     };
   });
 
-export const publishPropertyTemplateAction = authActionClient
+export const setPropertyPublishedAction = adminActionClient
   .inputSchema(
     z.object({
       propertyId: z.string().uuid(),
-      template: z.string().min(1),
+      isPublished: z.boolean(),
     })
   )
   .action(async ({ ctx, parsedInput }) => {
-    const { supabase, user, account } = ctx;
-    const { propertyId, template } = parsedInput;
+    const { supabase } = ctx;
+    const { propertyId, isPublished } = parsedInput;
 
-    const { data: propertyData, error: propertyError } = await supabase
+    const { error: updateError } = await supabase
       .from("property")
-      .select("id, user_id")
-      .eq("id", propertyId)
-      .single();
+      .update({
+        is_published: isPublished,
+      })
+      .eq("id", propertyId);
 
-    if (propertyError || !propertyData) {
-      throw new Error(propertyError?.message ?? "Proprieta non trovata");
+    if (updateError) {
+      throw new Error(updateError.message);
     }
-
-    if (!account?.is_admin && propertyData.user_id !== user.sub) {
-      throw new Error("Unauthorized");
-    }
-
-    await fs.mkdir(publishDirectory, { recursive: true });
-    const filename = `id-${propertyId}.html`;
-    const filePath = path.join(publishDirectory, filename);
-    await fs.writeFile(filePath, template, "utf8");
 
     return {
-      path: `/p/${filename}`,
+      isPublished,
     };
   });
 
