@@ -31,6 +31,17 @@ const asString = (value: unknown): string | null => {
   return trimmed.length > 0 ? trimmed : null;
 };
 
+const asNumber = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  return null;
+};
+
 const asArray = (value: unknown): unknown[] =>
   Array.isArray(value) ? value : [];
 
@@ -80,6 +91,30 @@ const findObjectWithKey = (root: unknown, key: string): AnyRecord | null => {
     if (isRecord(current)) {
       if (Object.prototype.hasOwnProperty.call(current, key)) {
         return current;
+      }
+      stack.push(...Object.values(current));
+      continue;
+    }
+
+    if (Array.isArray(current)) {
+      stack.push(...current);
+    }
+  }
+
+  return null;
+};
+
+const findLatLng = (root: unknown): { lat: number; lng: number } | null => {
+  const stack = [root];
+
+  while (stack.length) {
+    const current = stack.pop();
+
+    if (isRecord(current)) {
+      const lat = asNumber(current.lat ?? current.latitude);
+      const lng = asNumber(current.lng ?? current.longitude);
+      if (typeof lat === "number" && typeof lng === "number") {
+        return { lat, lng };
       }
       stack.push(...Object.values(current));
       continue;
@@ -492,6 +527,12 @@ export const parseAirbnbHtml = (html: string): AirbnbParseResult => {
 
   const location = extractLocation(locationSection);
   if (location) {
+    const latLng =
+      findLatLng(locationSection) ?? findLatLng(stayProductDetailPage);
+    if (latLng) {
+      location.lat = latLng.lat;
+      location.lng = latLng.lng;
+    }
     values.position = location;
   }
 

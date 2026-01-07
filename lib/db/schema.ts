@@ -8,7 +8,7 @@ import {
   boolean,
 } from "drizzle-orm/pg-core";
 import { uuid } from "drizzle-orm/pg-core";
-import { PropertySchema } from "@/components/property/schema";
+import { PropertyDetailsSchema } from "@/components/property/schema";
 
 const authSchema = pgSchema("auth");
 export const authUsers = authSchema.table("users", {
@@ -30,7 +30,8 @@ export const accountTable = pgTable("account", {
 
 export const propertyTable = pgTable("property", {
   id: uuid("id").primaryKey().defaultRandom(),
-  details: jsonb("details").notNull().$type<PropertySchema>(),
+  details: jsonb("details").notNull().$type<PropertyDetailsSchema>(),
+  template: text("template"),
 
   userId: uuid("user_id").references(() => authUsers.id),
 

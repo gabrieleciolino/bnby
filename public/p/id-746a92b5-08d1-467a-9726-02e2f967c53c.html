@@ -1,0 +1,1377 @@
+<!doctype html>
+<html lang="it" data-template-palette="sabbia" data-template-font-title="playfair" data-template-font-body="inter" data-template-gallery="grid">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Casa Eoliana</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #2f2a24;
+        --muted: #6f665c;
+        --accent: #d59a62;
+        --accent-strong: #b9773f;
+        --bg: #f8f2e9;
+        --card: #ffffff;
+        --shadow: 0 20px 50px rgba(14, 20, 24, 0.15);
+        --radius-lg: 24px;
+        --radius-md: 16px;
+        --radius-sm: 10px;
+        --font-heading: "Playfair Display", "Georgia", serif;
+        --font-body: "Inter", "Helvetica Neue", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-body);
+        color: var(--ink);
+        background: var(--bg);
+        line-height: 1.6;
+        scroll-behavior: smooth;
+      }
+
+      img {
+        max-width: 100%;
+        display: block;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .hero {
+        min-height: 100vh;
+        padding: clamp(48px, 8vw, 120px);
+        display: flex;
+        align-items: center;
+        position: relative;
+        background: var(--bg);
+        color: var(--ink);
+        overflow: hidden;
+      }
+
+      .hero--blend {
+        align-items: center;
+        color: #fefcf8;
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.8), rgba(248, 242, 233, 0.2)),
+          linear-gradient(135deg, rgba(13, 18, 20, 0.78), rgba(13, 18, 20, 0.2)),
+          var(--hero-image, linear-gradient(120deg, #f0d9b5, #c9c1b3));
+        background-size: cover;
+        background-position: center;
+      }
+
+      .hero-content {
+        max-width: 860px;
+        color: inherit;
+        padding: 0;
+        margin: 0 auto;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .hero--blend::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+      }
+
+      .hero--blend::after {
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.7));
+      }
+
+      .hero-outline {
+        margin: -4px 0 6px;
+        font-family: var(--font-heading);
+        font-size: clamp(1rem, 2vw, 1.4rem);
+        font-style: italic;
+        letter-spacing: 0.08em;
+        color: rgba(255, 255, 255, 0.78);
+      }
+
+      .hero-eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.35em;
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+
+      .hero--blend .hero-eyebrow {
+        color: rgba(254, 252, 248, 0.7);
+      }
+
+      h1 {
+        font-family: var(--font-heading);
+        font-size: clamp(3rem, 6vw, 4.8rem);
+        line-height: 1.05;
+        margin: 0 0 12px;
+      }
+
+      .hero--blend h1 {
+        text-shadow: 0 18px 40px rgba(8, 10, 12, 0.6);
+      }
+
+      .hero-subtitle {
+        font-size: 1.15rem;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+
+      .hero--blend .hero-subtitle {
+        color: rgba(254, 252, 248, 0.8);
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .hero--blend .hero-actions {
+        margin-top: 6px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 22px;
+        border-radius: 999px;
+        font-weight: 600;
+        border: 1px solid transparent;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #1b1208;
+        box-shadow: 0 12px 25px rgba(214, 154, 91, 0.35);
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-strong);
+      }
+
+      .btn-outline {
+        border-color: rgba(255, 255, 255, 0.5);
+        color: #fefcf8;
+        background: transparent;
+      }
+
+      .contact-card .btn-outline {
+        border-color: rgba(15, 20, 24, 0.18);
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.6);
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      section {
+        padding: clamp(48px, 8vw, 96px) clamp(24px, 8vw, 120px);
+      }
+
+      .section-header {
+        margin-bottom: 28px;
+      }
+
+      .section-header h2 {
+        font-family: var(--font-heading);
+        font-size: clamp(1.8rem, 3vw, 2.4rem);
+        margin: 0 0 8px;
+      }
+
+      .section-header p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .section-empty {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .services-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .service-card {
+        list-style: none;
+        background: var(--card);
+        border-radius: var(--radius-md);
+        padding: 18px 16px;
+        box-shadow: 0 12px 30px rgba(15, 20, 24, 0.08);
+        font-weight: 600;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .service-icon {
+        color: var(--accent-strong);
+      }
+
+      .service-icon-svg {
+        width: 30px;
+        height: 30px;
+      }
+
+      .service-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 40px rgba(15, 20, 24, 0.15);
+      }
+
+      .gallery-grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .gallery-grid--mosaic {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-auto-rows: 140px;
+      }
+
+      .gallery-grid--mosaic .gallery-card:first-child {
+        grid-column: span 2;
+        grid-row: span 2;
+      }
+
+      .gallery-grid--mosaic .gallery-card img {
+        height: 100%;
+        aspect-ratio: auto;
+      }
+
+      .gallery-grid--masonry {
+        display: block;
+        column-count: 3;
+        column-gap: 18px;
+      }
+
+      .gallery-grid--masonry .gallery-card {
+        display: inline-block;
+        width: 100%;
+        margin: 0 0 18px;
+        break-inside: avoid;
+      }
+
+      .gallery-grid--masonry .gallery-card img {
+        height: auto;
+        aspect-ratio: auto;
+        object-fit: contain;
+      }
+
+      .gallery-card {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: 0 18px 35px rgba(16, 20, 24, 0.12);
+        background: #f4eee6;
+        border: none;
+        padding: 0;
+        text-align: left;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .gallery-card img {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      .gallery-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 22px 45px rgba(16, 20, 24, 0.16);
+      }
+
+      .gallery-card:hover img {
+        transform: scale(1.04);
+      }
+
+      .gallery-more {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .gallery-more .btn {
+        padding: 14px 34px;
+        font-size: 1rem;
+      }
+
+      .gallery-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+      }
+
+      .gallery-modal.is-open {
+        display: flex;
+      }
+
+      .gallery-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(10, 10, 12, 0.7);
+      }
+
+      .gallery-modal-content {
+        position: relative;
+        z-index: 2;
+        width: min(1200px, 96vw);
+        height: min(92vh, 980px);
+        background: #0f1418;
+        color: #f8f2e9;
+        border-radius: 18px;
+        display: flex;
+        flex-direction: column;
+        padding: 18px;
+        gap: 14px;
+      }
+
+      .gallery-close {
+        align-self: flex-end;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: transparent;
+        color: inherit;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        cursor: pointer;
+      }
+
+      .gallery-stage {
+        position: relative;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 48px;
+      }
+
+      .gallery-modal-image {
+        max-height: 100%;
+        max-width: 100%;
+        width: auto;
+        object-fit: contain;
+        border-radius: 12px;
+        background: #0b0f12;
+      }
+
+      .gallery-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 46px;
+        height: 46px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.06);
+        color: inherit;
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .gallery-arrow[data-gallery-prev] {
+        left: 8px;
+      }
+
+      .gallery-arrow[data-gallery-next] {
+        right: 8px;
+      }
+
+      .gallery-arrow:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+
+      .gallery-thumbs {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 6px 2px 10px;
+        min-height: 74px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+      }
+
+      .gallery-thumb {
+        border: 2px solid transparent;
+        padding: 0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: transparent;
+        cursor: pointer;
+        flex: 0 0 auto;
+        width: 86px;
+      }
+
+      .gallery-thumb img {
+        width: 100%;
+        height: 64px;
+        object-fit: cover;
+        display: block;
+      }
+
+      .gallery-thumb.is-active {
+        border-color: var(--accent);
+      }
+
+      @media (max-width: 900px) {
+        .hero--blend {
+          align-items: center;
+        }
+
+        .gallery-grid--mosaic {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-auto-rows: 160px;
+        }
+
+        .gallery-grid--masonry {
+          column-count: 2;
+        }
+
+        .gallery-modal-content {
+          height: 96vh;
+          padding: 14px;
+        }
+
+        .gallery-stage {
+          padding: 6px 36px;
+        }
+
+        .gallery-arrow {
+          width: 40px;
+          height: 40px;
+          font-size: 1rem;
+        }
+      }
+
+      @media (max-width: 600px) {
+        #servizi {
+          padding: 40px 18px;
+        }
+
+        .services-grid {
+          gap: 12px;
+          grid-template-columns: 1fr;
+        }
+
+        .service-card {
+          padding: 14px 12px;
+        }
+
+        #contatti {
+          padding: 40px 18px;
+        }
+
+        .contact-grid,
+        .contact-grid--split {
+          grid-template-columns: 1fr !important;
+        }
+
+        .contact-panel {
+          padding: 20px 16px;
+        }
+
+        .contact-card {
+          width: 100%;
+        }
+
+        .contact-form .btn {
+          width: 100%;
+          justify-content: center;
+        }
+
+        h1 {
+          line-height: 1.02;
+        }
+
+        .section-header h2 {
+          line-height: 1.12;
+        }
+
+        .description-stats {
+          grid-template-columns: 1fr;
+          row-gap: 12px;
+        }
+
+        .description-stat + .description-stat {
+          border-left: none;
+          border-top: none;
+        }
+
+        .gallery-more .btn {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .gallery-grid--mosaic .gallery-card:first-child {
+          grid-column: span 2;
+          grid-row: span 1;
+        }
+
+        .gallery-grid--masonry {
+          column-count: 1;
+        }
+
+        .gallery-modal-content {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+        }
+
+        .gallery-stage {
+          padding: 6px 28px;
+        }
+      }
+
+      .description-panel,
+      .position-panel,
+      .contact-panel {
+        background: var(--card);
+        border-radius: var(--radius-md);
+        padding: 24px;
+        box-shadow: 0 18px 35px rgba(16, 20, 24, 0.12);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .description-panel:hover,
+      .position-panel:hover,
+      .contact-panel:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 22px 45px rgba(16, 20, 24, 0.16);
+      }
+
+      .description-stats {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        text-align: center;
+      }
+
+      .description-stat {
+        padding: 12px 8px;
+      }
+
+      .description-stat + .description-stat {
+        border-left: 1px solid rgba(15, 20, 24, 0.12);
+      }
+
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+        font-weight: 600;
+      }
+
+      .stat-label {
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        font-size: 0.7rem;
+        color: var(--muted);
+      }
+
+      .description-extras {
+        margin-top: 20px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .description-extra {
+        border-top: 1px solid rgba(15, 20, 24, 0.08);
+        padding-top: 16px;
+      }
+
+      .description-extra h3 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+        font-family: var(--font-heading);
+      }
+
+      .description-extra p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .position-map {
+        margin-top: 18px;
+        height: 200px;
+        border-radius: var(--radius-md);
+        background: linear-gradient(120deg, rgba(214, 154, 91, 0.2), rgba(39, 62, 71, 0.15));
+        overflow: hidden;
+      }
+
+      .position-map iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+      }
+
+      .position-map-link {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 12px;
+        font-size: 0.9rem;
+        color: var(--muted);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      .contact-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        align-items: start;
+      }
+
+      .contact-grid--split {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      }
+
+      .contact-form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .contact-form label {
+        display: grid;
+        gap: 6px;
+      }
+
+      .contact-form label span {
+        display: block;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .contact-form input,
+      .contact-form textarea {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid rgba(15, 20, 24, 0.12);
+        padding: 12px 14px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        background: #fff;
+        color: var(--ink);
+      }
+
+      .contact-form textarea {
+        resize: vertical;
+        min-height: 120px;
+      }
+
+      .contact-card {
+        display: grid;
+        gap: 10px;
+        padding: 18px 16px;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      .contact-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--muted);
+      }
+
+      .contact-helper {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .contact-item span {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 6px;
+      }
+
+      .faq-list {
+        display: grid;
+        gap: 16px;
+      }
+
+      .faq-item {
+        border-radius: var(--radius-md);
+        background: var(--card);
+        padding: 16px 20px;
+        box-shadow: 0 16px 35px rgba(16, 20, 24, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .faq-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 20px 40px rgba(16, 20, 24, 0.12);
+      }
+
+      .faq-item summary {
+        cursor: pointer;
+        font-weight: 600;
+        list-style: none;
+      }
+
+      .faq-item summary::marker,
+      .faq-item summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .faq-answer {
+        margin-top: 12px;
+        color: var(--muted);
+      }
+
+      footer {
+        padding: clamp(48px, 8vw, 96px) clamp(24px, 8vw, 120px);
+      }
+
+      .footer-card {
+        background: #1f2426;
+        color: #fefcf8;
+        border-radius: var(--radius-lg);
+        padding: clamp(28px, 4vw, 40px);
+        display: grid;
+        gap: 16px;
+        box-shadow: var(--shadow);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .footer-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 28px 60px rgba(0, 0, 0, 0.25);
+      }
+
+      [data-reveal] {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+        transition-delay: var(--reveal-delay, 0ms);
+      }
+
+      [data-reveal].is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          scroll-behavior: auto !important;
+        }
+
+        [data-reveal] {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+
+        .service-card,
+        .gallery-card,
+        .position-panel,
+        .contact-panel,
+        .faq-item,
+        .footer-card,
+        .btn {
+          transition: none;
+          transform: none;
+        }
+      }
+
+      .footer-card h3 {
+        font-family: var(--font-heading);
+        margin: 0;
+        font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+      }
+
+      .footer-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .footer-note {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    
+    <header class="hero hero--blend" style="--hero-image: url('https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/0.jpeg')">
+      <div class="hero-content" data-reveal>
+        
+    <h1>Casa Eoliana</h1>
+    <p class="hero-outline">Il tuo rifugio d&#39;autore</p>
+    
+    
+    
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#contatti" data-scroll>Prenota ora</a>
+      <a class="btn btn-outline" href="#galleria" data-scroll>Contatta l&#39;host</a>
+    </div>
+  
+  
+      </div>
+    </header>
+  
+    
+    <section id="descrizione">
+      <div class="section-header" data-reveal>
+        <h2>Descrizione</h2>
+      </div>
+      <div class="description-panel" data-reveal>
+        
+    <div class="description-stats">
+      <div class="description-stat">
+        <div class="stat-label">Camere</div>
+        <div class="stat-value">1</div>
+      </div>
+      <div class="description-stat">
+        <div class="stat-label">Bagni</div>
+        <div class="stat-value">2</div>
+      </div>
+      <div class="description-stat">
+        <div class="stat-label">Ospiti</div>
+        <div class="stat-value">8</div>
+      </div>
+    </div>
+  
+        <p>In uno dei luoghi più belli dell&#39;isola, con una vista unica su Vulcano, godrete delle numerose terrazze della casa, del giardino, del grande ulivo e della graziosa spiaggia della Forbice, raggiungibile a piedi in 5-10 minuti, per riposare, fare il bagno, fare snorkeling o semplicemente il dolce far niente!<br /><br />Lo spazio<br />La casa è indipendente e comprende un soggiorno-soggiorno con divano letto a 2 piazze, 3 camere matrimoniali e due bagni. <br />Ogni stanza è dotata di un ventilatore a soffitto.<br /><br />Accesso per gli ospiti<br />L&#39;alloggio si raggiunge a piedi o in scooter da un sentiero per 200 metri, dalla strada principale dove è possibile parcheggiare l&#39;auto. Ciò garantirà la tranquillità del vostro soggiorno.<br /><br />Dati di registrazione<br />IT083041C2R2KO9PO8</p>
+        
+        <div class="description-extras">
+          
+          <div class="description-extra">
+              <h3>Termini di cancellazione</h3>
+              <p>Semirigidi - Cancellazione gratuita entro il giorno 2 luglio. Effettua la cancellazione entro il giorno 25 luglio per ottenere un rimborso parziale.</p>
+            </div>
+        </div>
+      
+      </div>
+    </section>
+  
+
+    <section id="servizi">
+      <div class="section-header" data-reveal>
+        <h2>Servizi</h2>
+        
+      </div>
+      <ul class="services-grid">
+              <li class="service-card" data-reveal style="--reveal-delay:0ms">
+                <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-washing-machine service-icon-svg" aria-hidden="true"><path d="M3 6h3"></path><path d="M17 6h.01"></path><rect width="18" height="20" x="3" y="2" rx="2"></rect><circle cx="12" cy="13" r="5"></circle><path d="M12 18a2.5 2.5 0 0 0 0-5 2.5 2.5 0 0 1 0-5"></path></svg></span>
+                <span>Lavatrice</span>
+              </li>
+              <li class="service-card" data-reveal style="--reveal-delay:40ms">
+                <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wifi service-icon-svg" aria-hidden="true"><path d="M12 20h.01"></path><path d="M2 8.82a15 15 0 0 1 20 0"></path><path d="M5 12.859a10 10 0 0 1 14 0"></path><path d="M8.5 16.429a5 5 0 0 1 7 0"></path></svg></span>
+                <span>WiFi</span>
+              </li>
+              <li class="service-card" data-reveal style="--reveal-delay:80ms">
+                <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tv service-icon-svg" aria-hidden="true"><path d="m17 2-5 5-5-5"></path><rect width="20" height="15" x="2" y="7" rx="2"></rect></svg></span>
+                <span>TV</span>
+              </li>
+              <li class="service-card" data-reveal style="--reveal-delay:120ms">
+                <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-fence service-icon-svg" aria-hidden="true"><path d="M4 3 2 5v15c0 .6.4 1 1 1h2c.6 0 1-.4 1-1V5Z"></path><path d="M6 8h4"></path><path d="M6 18h4"></path><path d="m12 3-2 2v15c0 .6.4 1 1 1h2c.6 0 1-.4 1-1V5Z"></path><path d="M14 8h4"></path><path d="M14 18h4"></path><path d="m20 3-2 2v15c0 .6.4 1 1 1h2c.6 0 1-.4 1-1V5Z"></path></svg></span>
+                <span>Giardino</span>
+              </li>
+              <li class="service-card" data-reveal style="--reveal-delay:160ms">
+                <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-waves service-icon-svg" aria-hidden="true"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg></span>
+                <span>Vista mare</span>
+              </li></ul>
+    </section>
+
+    <section id="galleria">
+      <div class="section-header" data-reveal>
+        <h2>Galleria</h2>
+        
+      </div>
+      <div class="gallery-grid gallery-grid--grid">
+        
+              <button class="gallery-card" type="button" data-gallery-index="0" data-reveal style="--reveal-delay:0ms">
+                <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/0.jpeg" alt="0.jpeg" loading="lazy" />
+              </button>
+              <button class="gallery-card" type="button" data-gallery-index="1" data-reveal style="--reveal-delay:60ms">
+                <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/1.jpeg" alt="1.jpeg" loading="lazy" />
+              </button>
+              <button class="gallery-card" type="button" data-gallery-index="2" data-reveal style="--reveal-delay:120ms">
+                <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/2.jpeg" alt="2.jpeg" loading="lazy" />
+              </button>
+              <button class="gallery-card" type="button" data-gallery-index="3" data-reveal style="--reveal-delay:180ms">
+                <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/3.jpeg" alt="3.jpeg" loading="lazy" />
+              </button>
+              <button class="gallery-card" type="button" data-gallery-index="4" data-reveal style="--reveal-delay:240ms">
+                <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/4.jpeg" alt="4.jpeg" loading="lazy" />
+              </button>
+              <button class="gallery-card" type="button" data-gallery-index="5" data-reveal style="--reveal-delay:300ms">
+                <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/5.jpeg" alt="5.jpeg" loading="lazy" />
+              </button>
+              <button class="gallery-card" type="button" data-gallery-index="6" data-reveal style="--reveal-delay:360ms">
+                <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/6.jpeg" alt="6.jpeg" loading="lazy" />
+              </button>
+              <button class="gallery-card" type="button" data-gallery-index="7" data-reveal style="--reveal-delay:420ms">
+                <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/7.jpg" alt="7.jpg" loading="lazy" />
+              </button>
+              <button class="gallery-card" type="button" data-gallery-index="8" data-reveal style="--reveal-delay:480ms">
+                <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/8.jpeg" alt="8.jpeg" loading="lazy" />
+              </button>
+      </div>
+      <div class="gallery-more">
+        <button class="btn btn-primary" type="button" data-gallery-open>
+          Mostra altre foto
+        </button>
+      </div>
+      
+    </section>
+
+    <section id="posizione">
+      <div class="section-header" data-reveal>
+        <h2>Posizione</h2>
+        
+      </div>
+      <div class="position-panel" data-reveal>
+        <p>Via Test, Lipari, Italia</p>
+        <div class="position-map">
+          <iframe
+            title="Mappa posizione"
+            src="https://www.openstreetmap.org/export/embed.html?bbox=14.955690%2C38.448640%2C14.965690%2C38.458640&layer=mapnik&marker=38.453640%2C14.960690"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+        <a class="position-map-link" href="https://www.openstreetmap.org/?mlat=38.453640&mlon=14.960690#map=15/38.453640/14.960690" target="_blank" rel="noreferrer">
+          Apri su OpenStreetMap
+        </a>
+      </div>
+    </section>
+
+    
+    <section id="contatti">
+      <div class="section-header" data-reveal>
+        <h2>Contatti</h2>
+        
+      </div>
+      <div class="contact-panel" data-reveal>
+        <div class="contact-grid contact-grid--split">
+          
+        <form class="contact-form" data-contact-form data-contact-email="ciolgm@gmail.com">
+          <label>
+            <span>Nome</span>
+            <input type="text" name="name" placeholder="Il tuo nome" />
+          </label>
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" placeholder="La tua email" />
+          </label>
+          <label>
+            <span>Messaggio</span>
+            <textarea name="message" rows="4" placeholder="Scrivi qui..."></textarea>
+          </label>
+          <button class="btn btn-primary" type="submit">Invia richiesta</button>
+        </form>
+      
+          
+        <div class="contact-card">
+          <span class="contact-label">Telefono</span>
+          <strong>3331112223</strong>
+          <span class="contact-helper">Contatta Federicaa</span>
+          <a class="btn btn-outline" href="tel:3331112223">Chiama</a>
+        </div>
+      
+        </div>
+      </div>
+    </section>
+  
+
+    
+
+    <footer id="footer">
+      <div class="footer-card" data-reveal>
+        <h3>Pronto a soggiornare?</h3>
+        <p>Contattaci per disponibilita e dettagli personalizzati.</p>
+        <div class="footer-actions">
+          <a class="btn btn-primary" href="#contatti" data-scroll>Richiedi info</a>
+          
+        </div>
+        
+      </div>
+    </footer>
+    
+      <div class="gallery-modal" data-gallery-modal aria-hidden="true" role="dialog" aria-label="Galleria foto">
+        <div class="gallery-modal-backdrop" data-gallery-close></div>
+        <div class="gallery-modal-content" role="document">
+          <button class="gallery-close" type="button" data-gallery-close aria-label="Chiudi">Chiudi</button>
+          <div class="gallery-stage">
+            <button class="gallery-arrow" type="button" data-gallery-prev aria-label="Foto precedente">&#8592;</button>
+            <img class="gallery-modal-image" src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/0.jpeg" alt="0.jpeg" />
+            <button class="gallery-arrow" type="button" data-gallery-next aria-label="Foto successiva">&#8594;</button>
+          </div>
+          <div class="gallery-thumbs">
+            
+                  <button class="gallery-thumb" type="button" data-index="0" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/0.jpeg" data-alt="0.jpeg" aria-label="Foto 1">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/0.jpeg" alt="0.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="1" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/1.jpeg" data-alt="1.jpeg" aria-label="Foto 2">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/1.jpeg" alt="1.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="2" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/2.jpeg" data-alt="2.jpeg" aria-label="Foto 3">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/2.jpeg" alt="2.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="3" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/3.jpeg" data-alt="3.jpeg" aria-label="Foto 4">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/3.jpeg" alt="3.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="4" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/4.jpeg" data-alt="4.jpeg" aria-label="Foto 5">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/4.jpeg" alt="4.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="5" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/5.jpeg" data-alt="5.jpeg" aria-label="Foto 6">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/5.jpeg" alt="5.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="6" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/6.jpeg" data-alt="6.jpeg" aria-label="Foto 7">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/6.jpeg" alt="6.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="7" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/7.jpg" data-alt="7.jpg" aria-label="Foto 8">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/7.jpg" alt="7.jpg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="8" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/8.jpeg" data-alt="8.jpeg" aria-label="Foto 9">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/8.jpeg" alt="8.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="9" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/9.jpg" data-alt="9.jpg" aria-label="Foto 10">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/9.jpg" alt="9.jpg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="10" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/10.jpeg" data-alt="10.jpeg" aria-label="Foto 11">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/10.jpeg" alt="10.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="11" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/11.jpeg" data-alt="11.jpeg" aria-label="Foto 12">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/11.jpeg" alt="11.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="12" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/12.jpg" data-alt="12.jpg" aria-label="Foto 13">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/12.jpg" alt="12.jpg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="13" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/13.jpeg" data-alt="13.jpeg" aria-label="Foto 14">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/13.jpeg" alt="13.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="14" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/14.jpeg" data-alt="14.jpeg" aria-label="Foto 15">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/14.jpeg" alt="14.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="15" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/15.jpeg" data-alt="15.jpeg" aria-label="Foto 16">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/15.jpeg" alt="15.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="16" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/16.jpeg" data-alt="16.jpeg" aria-label="Foto 17">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/16.jpeg" alt="16.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="17" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/17.jpeg" data-alt="17.jpeg" aria-label="Foto 18">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/17.jpeg" alt="17.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="18" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/18.jpg" data-alt="18.jpg" aria-label="Foto 19">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/18.jpg" alt="18.jpg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="19" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/19.jpg" data-alt="19.jpg" aria-label="Foto 20">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/19.jpg" alt="19.jpg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="20" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/20.jpeg" data-alt="20.jpeg" aria-label="Foto 21">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/20.jpeg" alt="20.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="21" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/21.jpeg" data-alt="21.jpeg" aria-label="Foto 22">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/21.jpeg" alt="21.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="22" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/22.jpeg" data-alt="22.jpeg" aria-label="Foto 23">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/22.jpeg" alt="22.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="23" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/23.jpeg" data-alt="23.jpeg" aria-label="Foto 24">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/23.jpeg" alt="23.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="24" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/24.jpeg" data-alt="24.jpeg" aria-label="Foto 25">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/24.jpeg" alt="24.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="25" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/25.jpeg" data-alt="25.jpeg" aria-label="Foto 26">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/25.jpeg" alt="25.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="26" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/26.jpeg" data-alt="26.jpeg" aria-label="Foto 27">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/26.jpeg" alt="26.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="27" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/27.jpeg" data-alt="27.jpeg" aria-label="Foto 28">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/27.jpeg" alt="27.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="28" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/28.jpeg" data-alt="28.jpeg" aria-label="Foto 29">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/28.jpeg" alt="28.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="29" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/29.jpeg" data-alt="29.jpeg" aria-label="Foto 30">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/29.jpeg" alt="29.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="30" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/30.jpeg" data-alt="30.jpeg" aria-label="Foto 31">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/30.jpeg" alt="30.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="31" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/31.jpeg" data-alt="31.jpeg" aria-label="Foto 32">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/31.jpeg" alt="31.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="32" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/32.jpeg" data-alt="32.jpeg" aria-label="Foto 33">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/32.jpeg" alt="32.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="33" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/33.jpeg" data-alt="33.jpeg" aria-label="Foto 34">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/33.jpeg" alt="33.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="34" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/34.jpeg" data-alt="34.jpeg" aria-label="Foto 35">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/34.jpeg" alt="34.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="35" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/35.jpeg" data-alt="35.jpeg" aria-label="Foto 36">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/35.jpeg" alt="35.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="36" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/36.jpeg" data-alt="36.jpeg" aria-label="Foto 37">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/36.jpeg" alt="36.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="37" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/37.jpeg" data-alt="37.jpeg" aria-label="Foto 38">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/37.jpeg" alt="37.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="38" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/38.jpeg" data-alt="38.jpeg" aria-label="Foto 39">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/38.jpeg" alt="38.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="39" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/39.jpeg" data-alt="39.jpeg" aria-label="Foto 40">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/39.jpeg" alt="39.jpeg" loading="lazy" />
+                  </button>
+                  <button class="gallery-thumb" type="button" data-index="40" data-src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/40.jpeg" data-alt="40.jpeg" aria-label="Foto 41">
+                    <img src="https://xvjeccwizteesiefjzaf.supabase.co/storage/v1/object/public/properties/746a92b5-08d1-467a-9726-02e2f967c53c/40.jpeg" alt="40.jpeg" loading="lazy" />
+                  </button>
+          </div>
+        </div>
+      </div>
+
+    <script>
+      const links = document.querySelectorAll("[data-scroll]");
+      links.forEach((link) => {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          const target = document.querySelector(link.getAttribute("href"));
+          if (target) {
+            target.scrollIntoView({ behavior: "smooth" });
+          }
+        });
+      });
+
+      const faqItems = Array.from(document.querySelectorAll(".faq-item"));
+      faqItems.forEach((item) => {
+        item.addEventListener("toggle", () => {
+          if (!item.open) return;
+          faqItems.forEach((other) => {
+            if (other !== item) {
+              other.removeAttribute("open");
+            }
+          });
+        });
+      });
+
+      const modal = document.querySelector("[data-gallery-modal]");
+      const openModalBtn = document.querySelector("[data-gallery-open]");
+      if (modal && openModalBtn) {
+        const closeButtons = modal.querySelectorAll("[data-gallery-close]");
+        const imageEl = modal.querySelector(".gallery-modal-image");
+        const thumbs = Array.from(modal.querySelectorAll(".gallery-thumb"));
+        const thumbsContainer = modal.querySelector(".gallery-thumbs");
+        const prevBtn = modal.querySelector("[data-gallery-prev]");
+        const nextBtn = modal.querySelector("[data-gallery-next]");
+        const stage = modal.querySelector(".gallery-stage");
+        let currentIndex = 0;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchActive = false;
+
+        const setIndex = (index) => {
+          const safeIndex = Math.max(0, Math.min(index, thumbs.length - 1));
+          const thumb = thumbs[safeIndex];
+          if (!thumb || !imageEl) return;
+          currentIndex = safeIndex;
+          imageEl.src = thumb.dataset.src || "";
+          imageEl.alt = thumb.dataset.alt || "Foto";
+          thumbs.forEach((node) => node.classList.remove("is-active"));
+          thumb.classList.add("is-active");
+          if (thumbsContainer) {
+            const thumbRect = thumb.getBoundingClientRect();
+            const containerRect = thumbsContainer.getBoundingClientRect();
+            const overflowLeft = thumbRect.left - containerRect.left;
+            const overflowRight = thumbRect.right - containerRect.right;
+            if (overflowLeft < 0 || overflowRight > 0) {
+              const nextScrollLeft =
+                thumbsContainer.scrollLeft +
+                overflowLeft +
+                thumbRect.width / 2 -
+                containerRect.width / 2;
+              thumbsContainer.scrollTo({
+                left: nextScrollLeft,
+                behavior: "smooth",
+              });
+            }
+          }
+          if (prevBtn) prevBtn.disabled = currentIndex === 0;
+          if (nextBtn) nextBtn.disabled = currentIndex === thumbs.length - 1;
+        };
+
+        const openModal = (index) => {
+          modal.classList.add("is-open");
+          modal.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+          setIndex(index);
+        };
+
+        const closeModal = () => {
+          modal.classList.remove("is-open");
+          modal.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+        };
+
+        openModalBtn.addEventListener("click", () => openModal(0));
+
+        const gridItems = document.querySelectorAll("[data-gallery-index]");
+        gridItems.forEach((item) => {
+          item.addEventListener("click", () => {
+            const index = Number.parseInt(item.dataset.galleryIndex || "0", 10);
+            openModal(index);
+          });
+        });
+
+        closeButtons.forEach((button) =>
+          button.addEventListener("click", closeModal)
+        );
+
+        thumbs.forEach((thumb) => {
+          thumb.addEventListener("click", () => {
+            const index = Number.parseInt(thumb.dataset.index || "0", 10);
+            setIndex(index);
+          });
+        });
+
+        if (prevBtn) {
+          prevBtn.addEventListener("click", () => setIndex(currentIndex - 1));
+        }
+        if (nextBtn) {
+          nextBtn.addEventListener("click", () => setIndex(currentIndex + 1));
+        }
+
+        if (stage) {
+          stage.addEventListener("touchstart", (event) => {
+            if (!modal.classList.contains("is-open")) return;
+            if (event.touches.length !== 1) return;
+            touchActive = true;
+            touchStartX = event.touches[0].clientX;
+            touchStartY = event.touches[0].clientY;
+          }, { passive: true });
+
+          stage.addEventListener("touchend", (event) => {
+            if (!touchActive || !modal.classList.contains("is-open")) return;
+            touchActive = false;
+            const touch = event.changedTouches[0];
+            const diffX = touch.clientX - touchStartX;
+            const diffY = touch.clientY - touchStartY;
+            if (Math.abs(diffX) < 40 || Math.abs(diffY) > Math.abs(diffX)) {
+              return;
+            }
+            if (diffX < 0) {
+              setIndex(currentIndex + 1);
+            } else {
+              setIndex(currentIndex - 1);
+            }
+          });
+        }
+
+        document.addEventListener("keydown", (event) => {
+          if (!modal.classList.contains("is-open")) return;
+          if (event.key === "Escape") {
+            closeModal();
+          }
+          if (event.key === "ArrowLeft") {
+            setIndex(currentIndex - 1);
+          }
+          if (event.key === "ArrowRight") {
+            setIndex(currentIndex + 1);
+          }
+        });
+      }
+
+      const contactForms = document.querySelectorAll("[data-contact-form]");
+      contactForms.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const email = form.getAttribute("data-contact-email");
+          if (!email) return;
+          const data = new FormData(form);
+          const name = String(data.get("name") || "");
+          const from = String(data.get("email") || "");
+          const message = String(data.get("message") || "");
+          const subject = name
+            ? "Richiesta da " + name
+            : "Richiesta informazioni";
+          const body = ["Nome: " + name, "Email: " + from, "", message]
+            .join("\n")
+            .trim();
+          const href =
+            "mailto:" +
+            email +
+            "?subject=" +
+            encodeURIComponent(subject) +
+            "&body=" +
+            encodeURIComponent(body);
+          window.location.href = href;
+        });
+      });
+
+      const revealItems = Array.from(document.querySelectorAll("[data-reveal]"));
+      if (revealItems.length > 0) {
+        const prefersReducedMotion =
+          window.matchMedia &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+          revealItems.forEach((item) => item.classList.add("is-visible"));
+        } else {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add("is-visible");
+                observer.unobserve(entry.target);
+              });
+            },
+            { threshold: 0.15 }
+          );
+
+          revealItems.forEach((item) => observer.observe(item));
+        }
+      }
+    </script>
+  </body>
+</html>

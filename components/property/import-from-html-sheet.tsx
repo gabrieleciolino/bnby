@@ -113,6 +113,8 @@ export default function ImportFromHtmlSheet() {
       applyStringValue("position.address", values.position.address);
       applyStringValue("position.city", values.position.city);
       applyStringValue("position.country", values.position.country);
+      applyNumberValue("position.lat", values.position.lat);
+      applyNumberValue("position.lng", values.position.lng);
     }
 
     if (values.contact?.name) {

@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getUserQuery } from "@/components/auth/queries";
-import { PropertySchema } from "@/components/property/schema";
+import { PropertyDetailsSchema } from "@/components/property/schema";
 
 export const getPropertiesQuery = cache(async () => {
   const supabase = await createClient();
@@ -27,7 +27,7 @@ export const getPropertyQuery = cache(async (id: string) => {
 
   return {
     ...data,
-    details: data?.details as PropertySchema,
+    details: data?.details as PropertyDetailsSchema,
   };
 });
 

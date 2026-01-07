@@ -34,7 +34,6 @@ import { NumberField } from "../ui/number-field";
 import { useDropzone } from "react-dropzone";
 import { services } from "@/components/property/services";
 import ImportFromHtmlSheet from "@/components/property/import-from-html-sheet";
-import TemplateSwitcher from "@/components/property/template-switcher";
 import { createOwnerUserAction } from "@/components/property/actions";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import {
@@ -45,6 +44,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
+import { resolveLandingConfig } from "@/components/property/landing-config";
+import TemplatePreviewSheet from "@/components/property/template-preview-sheet";
 
 export default function PropertyForm({
   property,
@@ -76,6 +77,8 @@ export default function PropertyForm({
         address: "",
         city: "",
         country: "",
+        lat: undefined,
+        lng: undefined,
       },
       contact: property?.details.contact ?? {
         name: "",
@@ -83,6 +86,8 @@ export default function PropertyForm({
         phone: "",
       },
       faqs: property?.details.faqs ?? [],
+      landing: resolveLandingConfig(property?.details.landing),
+      template: property?.template ?? "",
     },
   });
 
@@ -174,9 +179,10 @@ export default function PropertyForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <input type="hidden" {...form.register("template")} />
         <div className="flex flex-wrap items-center gap-3">
           <ImportFromHtmlSheet />
-          {property && <TemplateSwitcher />}
+          <TemplatePreviewSheet />
           {property && !property?.user_id && (
             <Sheet>
               <SheetTrigger asChild>
@@ -442,6 +448,56 @@ export default function PropertyForm({
                 </FormItem>
               )}
             />
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="position.lat"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Latitudine</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.000001"
+                        placeholder="38.45364"
+                        value={field.value ?? ""}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          field.onChange(
+                            value === "" ? undefined : Number(value)
+                          );
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="position.lng"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Longitudine</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.000001"
+                        placeholder="14.96069"
+                        value={field.value ?? ""}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          field.onChange(
+                            value === "" ? undefined : Number(value)
+                          );
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </TabsContent>
           <TabsContent value="gallery" className="space-y-8">
             <h2 className="text-2xl font-bold">Galleria</h2>

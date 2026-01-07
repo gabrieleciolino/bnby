@@ -1,4 +1,5 @@
 import { getPropertiesQuery } from "@/components/property/queries";
+import { landingSchema } from "@/components/property/landing-config";
 import { z } from "zod";
 
 const gallerySchema = z.array(z.union([z.instanceof(File), z.string()]));
@@ -21,6 +22,8 @@ export const propertySchema = z.object({
       address: z.string().min(1),
       city: z.string().min(1),
       country: z.string().min(1),
+      lat: z.number().optional(),
+      lng: z.number().optional(),
     })
     .optional(),
   contact: z
@@ -38,9 +41,12 @@ export const propertySchema = z.object({
       })
     )
     .optional(),
+  landing: landingSchema,
+  template: z.string().optional(),
 });
 
 export type PropertySchema = z.infer<typeof propertySchema>;
+export type PropertyDetailsSchema = Omit<PropertySchema, "template">;
 export type PropertyFormValues = z.input<typeof propertySchema>;
 
 export type Property = NonNullable<
@@ -48,7 +54,7 @@ export type Property = NonNullable<
 >[number];
 
 export type PropertyWithDetails = Property & {
-  details: PropertySchema;
+  details: PropertyDetailsSchema;
 };
 
 export const createOwnerUserSchema = z.object({

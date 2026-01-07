@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "*.muscache.com",
+        hostname: "xvjeccwizteesiefjzaf.supabase.co",
       },
     ],
   },
