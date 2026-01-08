@@ -12,9 +12,7 @@ export default function ProtectedWrapper({
       <div className="bg-card rounded-lg p-4 shadow-lg">
         {title && (
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-secondary-foreground">
-              {title}
-            </h1>
+            <h1 className="text-3xl md:text-4xl font-bold">{title}</h1>
             {actions}
           </div>
         )}

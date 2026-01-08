@@ -5,6 +5,9 @@ export const urls = {
   },
   dashboard: {
     index: "/dashboard",
+    property: {
+      view: (id: string) => `/dashboard/property/${id}`,
+    },
   },
   admin: {
     index: "/admin",

@@ -120,12 +120,14 @@ export default function TemplatePreviewSheet({
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [isSaving, startSaving] = useTransition();
   const [isPublishingLanding, startPublishingLanding] = useTransition();
+  const [forceDirtySave, setForceDirtySave] = useState(false);
 
   const info = watch("info");
   const gallery = watch("gallery");
   const selectedServices = watch("services") ?? [];
   const position = watch("position");
   const contact = watch("contact");
+  const booking = watch("booking");
   const faqs = watch("faqs") ?? [];
   const landing = watch("landing");
   const landingCopy = landing?.copy;
@@ -137,10 +139,7 @@ export default function TemplatePreviewSheet({
     setIsPublished(initialIsPublished);
   }, [initialIsPublished]);
 
-  const previewImages = useMemo(
-    () => buildPreviewImages(gallery),
-    [gallery]
-  );
+  const previewImages = useMemo(() => buildPreviewImages(gallery), [gallery]);
 
   useEffect(() => {
     return () => {
@@ -165,9 +164,11 @@ export default function TemplatePreviewSheet({
         gallery: galleryItems,
         position,
         contact,
+        booking,
         faqs,
         landing,
         theme: defaultTemplateTheme,
+        propertyId,
       }),
     [
       info,
@@ -175,6 +176,7 @@ export default function TemplatePreviewSheet({
       galleryItems,
       position,
       contact,
+      booking,
       faqs,
       landing,
     ]
@@ -188,9 +190,11 @@ export default function TemplatePreviewSheet({
         gallery: galleryItems,
         position,
         contact,
+        booking,
         faqs,
         landing,
         theme,
+        propertyId,
       }),
     [
       info,
@@ -198,6 +202,7 @@ export default function TemplatePreviewSheet({
       galleryItems,
       position,
       contact,
+      booking,
       faqs,
       landing,
       theme,
@@ -208,7 +213,7 @@ export default function TemplatePreviewSheet({
     ? templateValue
     : defaultTemplateHtml;
   const previewDocHtml = editableHtml || templateHtml;
-  const isDirty = editableHtml !== baselineHtml;
+  const isDirty = forceDirtySave || editableHtml !== baselineHtml;
   const isBlank = editableHtml.trim().length === 0;
   const isLocalDraft = isDirty;
   const hasValidSlug = Boolean(slug);
@@ -218,8 +223,8 @@ export default function TemplatePreviewSheet({
   const templateLabel = !propertyId
     ? "Template non salvato"
     : isLocalDraft
-      ? "Template da salvare"
-      : "Template salvato";
+    ? "Template da salvare"
+    : "Template salvato";
 
   const hasLocalImages = useMemo(
     () => (gallery ?? []).some((item) => item instanceof File),
@@ -271,9 +276,11 @@ export default function TemplatePreviewSheet({
       gallery: galleryItems,
       position,
       contact,
+      booking,
       faqs,
       landing,
       theme: next,
+      propertyId,
     });
     setIsManualEdit(true);
     setEditableHtml(nextHtml);
@@ -281,7 +288,7 @@ export default function TemplatePreviewSheet({
   };
 
   const updateLandingCopy = (
-    nextLandingCopy: PropertyFormValues["landing"]["copy"]
+    nextLandingCopy: NonNullable<PropertyFormValues["landing"]>["copy"]
   ) => {
     const nextLanding = {
       ...(landing ?? {}),
@@ -293,9 +300,11 @@ export default function TemplatePreviewSheet({
       gallery: galleryItems,
       position,
       contact,
+      booking,
       faqs,
       landing: nextLanding,
       theme,
+      propertyId,
     });
     setIsManualEdit(true);
     setEditableHtml(nextHtml);
@@ -303,7 +312,7 @@ export default function TemplatePreviewSheet({
   };
 
   const updateLandingLayout = (
-    nextLayout: PropertyFormValues["landing"]["layout"]
+    nextLayout: NonNullable<PropertyFormValues["landing"]>["layout"]
   ) => {
     const nextLanding = {
       ...(landing ?? {}),
@@ -320,9 +329,11 @@ export default function TemplatePreviewSheet({
       gallery: galleryItems,
       position,
       contact,
+      booking,
       faqs,
       landing: nextLanding,
       theme,
+      propertyId,
     });
     setIsManualEdit(true);
     setEditableHtml(nextHtml);
@@ -360,27 +371,31 @@ export default function TemplatePreviewSheet({
 
   const formatTime = (value: Date | null) =>
     value
-      ? value.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+      ? value.toLocaleTimeString("it-IT", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
       : "—";
 
   const statusMessage = !propertyId
     ? "Crea la proprieta per poter salvare il template."
     : isLocalDraft
-      ? "Stai vedendo la bozza locale. Premi Salva per salvarla nel template."
-      : isPublished
-        ? "Landing pubblicata e aggiornata."
-        : isAdmin
-          ? "Landing non pubblicata. Usa il toggle per renderla visibile."
-          : "Landing non pubblicata. Attendi la pubblicazione dell'admin.";
+    ? "Stai vedendo la bozza locale. Premi Salva per salvarla nel template."
+    : isPublished
+    ? "Landing pubblicata e aggiornata."
+    : isAdmin
+    ? "Landing non pubblicata. Usa il toggle per renderla visibile."
+    : "Landing non pubblicata. Attendi la pubblicazione dell'admin.";
 
-  const previewLabel = !propertyId || isLocalDraft
-    ? "Anteprima: bozza locale"
-    : "Anteprima: versione salvata";
+  const previewLabel =
+    !propertyId || isLocalDraft
+      ? "Anteprima: bozza locale"
+      : "Anteprima: versione salvata";
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button type="button" variant="outline">
+        <Button type="button" variant="secondary">
           Vedi template
         </Button>
       </SheetTrigger>
@@ -479,7 +494,7 @@ export default function TemplatePreviewSheet({
               </div>
               <Button
                 type="button"
-                variant={isDirty ? "default" : "outline"}
+                variant={isDirty ? "default" : "secondary"}
                 size="sm"
                 disabled={!isDirty || isBlank || isSaving}
                 onClick={() => {
@@ -491,6 +506,7 @@ export default function TemplatePreviewSheet({
                     toast.info(
                       "Template pronto. Salva la proprieta per registrarlo."
                     );
+                    setForceDirtySave(false);
                     return;
                   }
 
@@ -510,6 +526,7 @@ export default function TemplatePreviewSheet({
                         shouldValidate: true,
                       });
                       setSavedAt(new Date());
+                      setForceDirtySave(false);
                       toast.success("Template salvato");
                     } catch (error) {
                       toast.error("Errore durante il salvataggio");
@@ -522,7 +539,7 @@ export default function TemplatePreviewSheet({
               {isAdmin && (
                 <Button
                   type="button"
-                  variant={isPublished ? "outline" : "default"}
+                  variant={isPublished ? "secondary" : "default"}
                   size="sm"
                   disabled={!canTogglePublish || isPublishingLanding}
                   onClick={() => {
@@ -557,13 +574,13 @@ export default function TemplatePreviewSheet({
                   {isPublishingLanding
                     ? "Aggiorno..."
                     : isPublished
-                      ? "Nascondi landing"
-                      : "Pubblica landing"}
+                    ? "Nascondi landing"
+                    : "Pubblica landing"}
                 </Button>
               )}
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={() => {
                   setValue("template", "", {
@@ -574,20 +591,21 @@ export default function TemplatePreviewSheet({
                   setIsManualEdit(false);
                   setEditableHtml(defaultTemplateHtml);
                   setLocalUpdatedAt(new Date());
+                  setForceDirtySave(true);
                 }}
               >
                 Ripristina
               </Button>
               {isAdmin && previewPath && (
                 <>
-                  <Button asChild variant="outline" size="sm">
+                  <Button asChild variant="secondary" size="sm">
                     <a href={previewPath} target="_blank" rel="noreferrer">
                       Apri preview
                     </a>
                   </Button>
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={async () => {
                       const url = `${window.location.origin}${previewPath}`;
@@ -601,14 +619,14 @@ export default function TemplatePreviewSheet({
               )}
               {landingPath && isPublished && (
                 <>
-                  <Button asChild variant="outline" size="sm">
+                  <Button asChild variant="secondary" size="sm">
                     <a href={landingPath} target="_blank" rel="noreferrer">
                       Apri landing
                     </a>
                   </Button>
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={async () => {
                       const url = `${window.location.origin}${landingPath}`;
@@ -622,13 +640,11 @@ export default function TemplatePreviewSheet({
               )}
             </div>
           </div>
-          <div className="rounded-lg border border-border/60 bg-background px-3 py-2 text-sm text-muted-foreground">
+          <div className="rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
             {statusMessage}
           </div>
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:flex-row">
-            <div
-              className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden rounded-lg border bg-muted/10 p-3"
-            >
+            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden rounded-lg border bg-muted/10 p-3">
               <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span>{previewLabel}</span>
                 {isLocalDraft && isAdmin && (
@@ -668,7 +684,7 @@ export default function TemplatePreviewSheet({
                             className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm transition ${
                               isActive
                                 ? "border-primary bg-primary/10"
-                                : "border-border bg-background"
+                                : "border-border bg-background/20"
                             }`}
                             onClick={() =>
                               updateTheme({
@@ -743,7 +759,7 @@ export default function TemplatePreviewSheet({
                         return (
                           <div
                             key={sectionKey}
-                            className="space-y-3 rounded-lg border bg-background p-3 text-sm"
+                            className="space-y-3 rounded-lg border bg-background/20 p-3 text-sm"
                           >
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <div className="flex items-center gap-2">

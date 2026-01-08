@@ -34,7 +34,10 @@ import { NumberField } from "../ui/number-field";
 import { useDropzone } from "react-dropzone";
 import { services } from "@/components/property/services";
 import ImportFromHtmlSheet from "@/components/property/import-from-html-sheet";
-import { createOwnerUserAction } from "@/components/property/actions";
+import {
+  associateOwnerUserAction,
+  createOwnerUserAction,
+} from "@/components/property/actions";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import {
   Sheet,
@@ -56,8 +59,10 @@ export default function PropertyForm({
 }) {
   const [isUpdatingProperty, startUpdatingProperty] = useTransition();
   const [isCreatingOwnerUser, startCreatingOwnerUser] = useTransition();
+  const [isAssociatingOwnerUser, startAssociatingOwnerUser] = useTransition();
   const [ownerUserEmail, setOwnerUserEmail] = useState("");
   const [ownerUserPassword, setOwnerUserPassword] = useState("");
+  const [existingOwnerEmail, setExistingOwnerEmail] = useState("");
   const router = useRouter();
 
   const form = useForm<PropertyFormValues>({
@@ -88,6 +93,10 @@ export default function PropertyForm({
         email: "",
         phone: "",
       },
+      booking: {
+        icalUrl: property?.details.booking?.icalUrl ?? "",
+        bookingUrl: property?.details.booking?.bookingUrl ?? "",
+      },
       faqs: property?.details.faqs ?? [],
       landing: resolveLandingConfig(property?.details.landing),
       template: property?.template ?? "",
@@ -106,7 +115,11 @@ export default function PropertyForm({
   const onSubmit = (data: PropertyFormValues) => {
     startUpdatingProperty(async () => {
       try {
-        const { data: updatedProperty, serverError, validationErrors } = property
+        const {
+          data: updatedProperty,
+          serverError,
+          validationErrors,
+        } = property
           ? await editPropertyAction(data)
           : await addPropertyAction(data);
 
@@ -180,8 +193,38 @@ export default function PropertyForm({
         if (validationErrors) {
           throw new Error();
         }
+        toast.success("Utente proprietario creato con successo");
+        setOwnerUserEmail("");
+        setOwnerUserPassword("");
+        router.refresh();
       } catch (error) {
         toast.error("Errore durante la creazione dell'utente proprietario");
+      }
+    });
+  };
+
+  const handleAssociateOwnerUser = () => {
+    startAssociatingOwnerUser(async () => {
+      try {
+        const { serverError, validationErrors } =
+          await associateOwnerUserAction({
+            email: existingOwnerEmail,
+            propertyId: property?.id ?? "",
+          });
+
+        if (serverError) {
+          throw new Error(serverError);
+        }
+
+        if (validationErrors) {
+          throw new Error();
+        }
+
+        toast.success("Utente associato con successo");
+        setExistingOwnerEmail("");
+        router.refresh();
+      } catch (error) {
+        toast.error("Errore durante l'associazione dell'utente proprietario");
       }
     });
   };
@@ -206,26 +249,35 @@ export default function PropertyForm({
               </SheetTrigger>
               <SheetContent className="bg-card">
                 <SheetHeader>
-                  <SheetTitle className="text-2xl font-bold">
-                    Crea utente proprietario
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="p-4 space-y-4">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    placeholder="john.doe@example.com"
-                    value={ownerUserEmail}
-                    onChange={(e) => setOwnerUserEmail(e.target.value)}
-                  />
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Password"
-                    value={ownerUserPassword}
-                    onChange={(e) => setOwnerUserPassword(e.target.value)}
-                  />
+                <SheetTitle className="text-2xl font-bold">
+                  Utente proprietario
+                </SheetTitle>
+              </SheetHeader>
+              <Tabs defaultValue="create" className="p-4">
+                <TabsList className="h-12 w-full">
+                  <TabsTrigger value="create">Crea nuovo</TabsTrigger>
+                  <TabsTrigger value="associate">Associa esistente</TabsTrigger>
+                </TabsList>
+                <TabsContent value="create" className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="owner-email">Email</Label>
+                    <Input
+                      id="owner-email"
+                      placeholder="john.doe@example.com"
+                      value={ownerUserEmail}
+                      onChange={(e) => setOwnerUserEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="owner-password">Password</Label>
+                    <Input
+                      id="owner-password"
+                      type="password"
+                      placeholder="Password"
+                      value={ownerUserPassword}
+                      onChange={(e) => setOwnerUserPassword(e.target.value)}
+                    />
+                  </div>
                   <Button
                     type="button"
                     onClick={handleCreateOwnerUser}
@@ -236,10 +288,32 @@ export default function PropertyForm({
                     )}
                     Crea utente
                   </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
-          )}
+                </TabsContent>
+                <TabsContent value="associate" className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="existing-owner-email">Email utente</Label>
+                    <Input
+                      id="existing-owner-email"
+                      placeholder="utente.esistente@example.com"
+                      value={existingOwnerEmail}
+                      onChange={(e) => setExistingOwnerEmail(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleAssociateOwnerUser}
+                    disabled={isAssociatingOwnerUser}
+                  >
+                    {isAssociatingOwnerUser && (
+                      <Loader2 className="size-4 animate-spin" />
+                    )}
+                    Associa utente
+                  </Button>
+                </TabsContent>
+              </Tabs>
+            </SheetContent>
+          </Sheet>
+        )}
         </div>
 
         <Tabs defaultValue="info">
@@ -248,6 +322,7 @@ export default function PropertyForm({
             <TabsTrigger value="services">Servizi</TabsTrigger>
             <TabsTrigger value="gallery">Galleria</TabsTrigger>
             <TabsTrigger value="contact">Contatti</TabsTrigger>
+            <TabsTrigger value="booking">Prenotazioni</TabsTrigger>
             <TabsTrigger value="faqs">Domande frequenti</TabsTrigger>
             <TabsTrigger value="position">Posizione</TabsTrigger>
           </TabsList>
@@ -411,7 +486,7 @@ export default function PropertyForm({
                     "flex flex-col items-center justify-center min-h-[100px] gap-2 border-2  p-2 rounded-md",
                     selectedServices.includes(service.id)
                       ? "border-primary"
-                      : "border-secondary"
+                      : "border-muted"
                   )}
                   onClick={() => {
                     if (selectedServices.includes(service.id)) {
@@ -603,6 +678,43 @@ export default function PropertyForm({
                   <FormLabel>Telefono</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="333 123 4567" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </TabsContent>
+          <TabsContent value="booking" className="space-y-8">
+            <h2 className="text-2xl font-bold">Prenotazioni</h2>
+            <p className="text-sm text-muted-foreground">
+              Inserisci il link iCal in sola lettura per sincronizzare le
+              disponibilita. In alternativa puoi usare il link diretto al
+              portale di prenotazioni.
+            </p>
+            <FormField
+              control={form.control}
+              name="booking.icalUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link iCal (sola lettura)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="https://.../calendar.ics"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="booking.bookingUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link diretto prenotazioni</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="https://www.airbnb.com/..." />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

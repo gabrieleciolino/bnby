@@ -16,9 +16,21 @@ import { urls } from "@/lib/urls";
 
 export const PropertiesList = ({
   properties,
+  hrefBuilder,
 }: {
   properties: PropertyWithDetails[];
+  hrefBuilder?: (id: string) => string;
 }) => {
+  const buildHref = hrefBuilder ?? urls.admin.property.view;
+
+  if (!properties || properties.length === 0) {
+    return (
+      <p className="rounded-lg border border-border/60 bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+        Nessuna proprietà trovata.
+      </p>
+    );
+  }
+
   return (
     <div>
       {properties.map((property) => (
@@ -31,7 +43,7 @@ export const PropertiesList = ({
           </CardHeader>
           <CardFooter>
             <Button variant="outline" asChild>
-              <Link href={urls.admin.property.view(property.id)}>
+              <Link href={buildHref(property.id)}>
                 <EyeIcon className="size-4" />
                 Visualizza
               </Link>

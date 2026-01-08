@@ -60,6 +60,100 @@ export type Database = {
         }
         Relationships: []
       }
+      booking: {
+        Row: {
+          created_at: string
+          email: string | null
+          end_date: string
+          guests: number
+          id: string
+          message: string | null
+          name: string
+          phone: string | null
+          property_id: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          end_date: string
+          guests: number
+          id?: string
+          message?: string | null
+          name: string
+          phone?: string | null
+          property_id: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          end_date?: string
+          guests?: number
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string | null
+          property_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_property_id_property_id_fk"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          message: string
+          name: string
+          phone: string | null
+          property_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          message: string
+          name: string
+          phone?: string | null
+          property_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          message?: string
+          name?: string
+          phone?: string | null
+          property_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_property_id_property_id_fk"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery: {
         Row: {
           created_at: string
@@ -91,6 +185,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          read: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       property: {
         Row: {

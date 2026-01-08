@@ -268,7 +268,8 @@ const resolveTemplateTheme = (template?: string | null) =>
 
 const buildTemplateFromDetails = (
   details: PropertyDetailsSchema,
-  template?: string | null
+  template?: string | null,
+  propertyId?: string | null
 ) =>
   buildPropertyLandingHtml({
     info: details.info,
@@ -276,10 +277,16 @@ const buildTemplateFromDetails = (
     gallery: toTemplateGalleryItems(details.gallery),
     position: details.position,
     contact: details.contact,
+    booking: details.booking,
     faqs: details.faqs ?? [],
     landing: details.landing,
     theme: resolveTemplateTheme(template),
+    propertyId: propertyId ?? undefined,
   });
+
+type PropertyDetailsDb = Omit<PropertyDetailsSchema, "gallery"> & {
+  gallery: string[];
+};
 
 export const addPropertyAction = authActionClient
   .inputSchema(propertySchema)
@@ -292,6 +299,7 @@ export const addPropertyAction = authActionClient
       services,
       position,
       contact,
+      booking,
       gallery,
       faqs,
       landing,
@@ -299,7 +307,7 @@ export const addPropertyAction = authActionClient
     } = parsedInput;
     const themeTemplate = template?.trim() ? template : null;
 
-    const details: PropertyDetailsSchema = {
+    const details: PropertyDetailsDb = {
       slug,
       info: {
         name,
@@ -312,14 +320,16 @@ export const addPropertyAction = authActionClient
       services,
       position,
       contact,
+      booking,
       faqs,
       landing,
+      gallery: [],
     };
 
     const { data, error } = await supabase
       .from("property")
       .insert({
-        details,
+        details: details as Database["public"]["Tables"]["property"]["Row"]["details"],
         template: null,
       })
       .select()
@@ -336,16 +346,21 @@ export const addPropertyAction = authActionClient
       propertyId: data.id,
       galleryItems: gallery,
     });
-    const nextDetails: PropertyDetailsSchema = {
+    const nextDetails: PropertyDetailsDb = {
       ...details,
       gallery: uploadedImages,
     };
-    const nextTemplate = buildTemplateFromDetails(nextDetails, themeTemplate);
+    const nextTemplate = buildTemplateFromDetails(
+      nextDetails,
+      themeTemplate,
+      data.id
+    );
 
     const { data: updatedData, error: updatedError } = await supabase
       .from("property")
       .update({
-        details: nextDetails,
+        details:
+          nextDetails as Database["public"]["Tables"]["property"]["Row"]["details"],
         template: nextTemplate,
       })
       .eq("id", data.id)
@@ -387,16 +402,21 @@ export const editPropertyAction = authActionClient
     });
     const themeTemplate =
       template?.trim() || propertyData?.template?.trim() || null;
-    const nextDetails = {
+    const nextDetails: PropertyDetailsDb = {
       ...data,
       gallery: uploadedImages,
-    } as PropertyDetailsSchema;
-    const nextTemplate = buildTemplateFromDetails(nextDetails, themeTemplate);
+    } as PropertyDetailsDb;
+    const nextTemplate = buildTemplateFromDetails(
+      nextDetails,
+      themeTemplate,
+      id
+    );
 
     const { data: updatedData, error: updatedError } = await supabase
       .from("property")
       .update({
-        details: nextDetails,
+        details:
+          nextDetails as Database["public"]["Tables"]["property"]["Row"]["details"],
         template: nextTemplate,
       })
       .eq("id", id)
@@ -462,6 +482,95 @@ export const createOwnerUserAction = adminActionClient
     return {
       user: data.user,
       account: accountData,
+    };
+  });
+
+export const associateOwnerUserAction = adminActionClient
+  .inputSchema(
+    z.object({
+      email: z.email(),
+      propertyId: z.string(),
+    })
+  )
+  .action(async ({ ctx, parsedInput }) => {
+    const { supabase } = ctx;
+
+    const { data: usersData, error: usersError } =
+      await supabase.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
+      });
+
+    if (usersError) {
+      throw new Error(usersError.message);
+    }
+
+    const normalizedEmail = parsedInput.email.trim().toLowerCase();
+    const user = usersData?.users.find(
+      (item) => item.email?.toLowerCase() === normalizedEmail
+    );
+
+    if (!user) {
+      throw new Error("Utente non trovato");
+    }
+
+    const { data: propertyData, error: propertyError } = await supabase
+      .from("property")
+      .select("id,user_id")
+      .eq("id", parsedInput.propertyId)
+      .single();
+
+    if (propertyError) {
+      throw new Error(propertyError.message);
+    }
+
+    if (propertyData?.user_id) {
+      throw new Error("La proprietà ha già un proprietario associato");
+    }
+
+    const { data: accountData, error: accountError } = await supabase
+      .from("account")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (accountError) {
+      throw new Error(accountError.message);
+    }
+
+    if (accountData?.is_admin) {
+      throw new Error("L'utente selezionato è un amministratore");
+    }
+
+    if (!accountData) {
+      const { error: insertAccountError } = await supabase
+        .from("account")
+        .insert({
+          user_id: user.id,
+          is_admin: false,
+        });
+
+      if (insertAccountError) {
+        throw new Error(insertAccountError.message);
+      }
+    }
+
+    const { data: propertyUpdate, error: propertyUpdateError } = await supabase
+      .from("property")
+      .update({
+        user_id: user.id,
+      })
+      .eq("id", parsedInput.propertyId)
+      .select()
+      .single();
+
+    if (propertyUpdateError) {
+      throw new Error(propertyUpdateError.message);
+    }
+
+    return {
+      user,
+      property: propertyUpdate,
     };
   });
 

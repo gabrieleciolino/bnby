@@ -3,6 +3,7 @@ import {
   defaultTemplateTheme,
 } from "@/components/property/template-html";
 import type { PropertyDetailsSchema } from "@/components/property/schema";
+import { extractUnavailableDatesFromIcal } from "@/lib/booking/ical";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,7 @@ export async function GET(
 
   const { data, error } = await supabaseAdmin
     .from("property")
-    .select("details, template, is_published")
+    .select("id, details, template, is_published")
     .eq("details->>slug", slug)
     .maybeSingle();
 
@@ -26,9 +27,30 @@ export async function GET(
     return new Response("Not Found", { status: 404 });
   }
 
-  const template = data.template?.trim();
   const details = data.details as PropertyDetailsSchema;
-  const html =
+  const bookingIcalUrl = details.booking?.icalUrl?.trim();
+  const bookingAvailability = bookingIcalUrl
+    ? await (async () => {
+        try {
+          const response = await fetch(bookingIcalUrl, {
+            headers: { "User-Agent": "bnbfacile-calendar" },
+            cache: "no-store",
+          });
+          if (!response.ok) {
+            return null;
+          }
+
+          const icalText = await response.text();
+          const unavailableDates = extractUnavailableDatesFromIcal(icalText);
+          return { unavailableDates };
+        } catch {
+          return null;
+        }
+      })()
+    : null;
+
+  const template = data.template?.trim();
+  const htmlBase =
     template && template.length > 0
       ? template
       : buildPropertyLandingHtml({
@@ -42,10 +64,23 @@ export async function GET(
             })),
           position: details.position,
           contact: details.contact,
+          booking: details.booking,
           faqs: details.faqs ?? [],
           landing: details.landing,
+          bookingAvailability,
           theme: defaultTemplateTheme,
+          propertyId: data.id,
         });
+
+  const html =
+    template && template.length > 0 && bookingAvailability
+      ? htmlBase.replace(
+          /<script type="application\/json" id="booking-data">[\s\S]*?<\/script>/,
+          `<script type="application/json" id="booking-data">${JSON.stringify(
+            bookingAvailability
+          ).replace(/</g, "\\u003c")}</script>`
+        )
+      : htmlBase;
 
   return new Response(html, {
     headers: {

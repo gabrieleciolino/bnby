@@ -3,6 +3,7 @@ import { landingSchema } from "@/components/property/landing-config";
 import { z } from "zod";
 
 const gallerySchema = z.array(z.union([z.instanceof(File), z.string()]));
+const optionalUrlSchema = z.string().trim().url().optional().or(z.literal(""));
 
 export const propertySchema = z.object({
   id: z.string().optional(),
@@ -32,6 +33,12 @@ export const propertySchema = z.object({
       name: z.string().optional(),
       email: z.email().optional(),
       phone: z.string().optional(),
+    })
+    .optional(),
+  booking: z
+    .object({
+      icalUrl: optionalUrlSchema,
+      bookingUrl: optionalUrlSchema,
     })
     .optional(),
   faqs: z

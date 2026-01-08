@@ -121,13 +121,17 @@ export default function ImportFromHtmlSheet() {
       applyStringValue("contact.name", values.contact.name);
     }
 
+    if (values.booking?.bookingUrl) {
+      applyStringValue("booking.bookingUrl", values.booking.bookingUrl);
+    }
+
     toast.success("Dati importati dal codice HTML");
   };
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline">Importa da HTML</Button>
+        <Button variant="secondary">Importa da HTML</Button>
       </SheetTrigger>
       <SheetContent className="bg-card w-full! max-w-3xl!">
         <SheetHeader>
@@ -156,12 +160,7 @@ export default function ImportFromHtmlSheet() {
             onChange={(event) => setHtml(event.target.value)}
           />
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleImport}
-          >
+          <Button type="button" className="w-full" onClick={handleImport}>
             Importa
           </Button>
         </div>

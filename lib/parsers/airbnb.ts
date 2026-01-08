@@ -45,6 +45,14 @@ const asNumber = (value: unknown): number | null => {
 const asArray = (value: unknown): unknown[] =>
   Array.isArray(value) ? value : [];
 
+const decodeHtmlEntities = (value: string) =>
+  value
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">");
+
 const extractDataInjectorInstances = (html: string): unknown | null => {
   if (!html.trim()) {
     return null;
@@ -120,6 +128,114 @@ const findLatLng = (root: unknown): { lat: number; lng: number } | null => {
       continue;
     }
 
+    if (Array.isArray(current)) {
+      stack.push(...current);
+    }
+  }
+
+  return null;
+};
+
+const isBookingUrl = (value: string) =>
+  /^https?:\/\/[^"'\\s]+\/rooms\/\d+/i.test(value);
+
+const extractBookingUrlFromHtml = (html: string): string | null => {
+  if (!html.trim()) {
+    return null;
+  }
+
+  if (typeof DOMParser !== "undefined") {
+    try {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const ogUrl =
+        doc.querySelector('meta[property="og:url"]')?.getAttribute("content");
+      if (ogUrl && isBookingUrl(ogUrl)) {
+        return ogUrl;
+      }
+      const twitterUrl =
+        doc.querySelector('meta[name="twitter:url"]')?.getAttribute("content");
+      if (twitterUrl && isBookingUrl(twitterUrl)) {
+        return twitterUrl;
+      }
+      const canonicalUrl =
+        doc.querySelector('link[rel="canonical"]')?.getAttribute("href");
+      if (canonicalUrl && isBookingUrl(canonicalUrl)) {
+        return canonicalUrl;
+      }
+    } catch {
+      return null;
+    }
+  }
+
+  const ogMatch = html.match(
+    /<meta[^>]+property=["']og:url["'][^>]+content=["']([^"']+)["']/i
+  );
+  if (ogMatch?.[1] && isBookingUrl(ogMatch[1])) {
+    return decodeHtmlEntities(ogMatch[1]);
+  }
+
+  const twitterMatch = html.match(
+    /<meta[^>]+name=["']twitter:url["'][^>]+content=["']([^"']+)["']/i
+  );
+  if (twitterMatch?.[1] && isBookingUrl(twitterMatch[1])) {
+    return decodeHtmlEntities(twitterMatch[1]);
+  }
+
+  const canonicalMatch = html.match(
+    /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i
+  );
+  if (canonicalMatch?.[1] && isBookingUrl(canonicalMatch[1])) {
+    return decodeHtmlEntities(canonicalMatch[1]);
+  }
+
+  return null;
+};
+
+const extractBookingUrlFromData = (root: unknown): string | null => {
+  const preferredKeys = [
+    "canonicalUrl",
+    "pdpLink",
+    "ogUrl",
+    "twitterUrl",
+    "shareUrl",
+  ];
+
+  for (const key of preferredKeys) {
+    const container = findObjectWithKey(root, key);
+    if (container && isRecord(container)) {
+      const value = asString(container[key]);
+      if (value && isBookingUrl(value)) {
+        return value;
+      }
+    }
+  }
+
+  const canonicalContainer = findObjectWithKey(root, "canonical_url");
+  if (canonicalContainer && isRecord(canonicalContainer)) {
+    const host = asString(canonicalContainer.canonical_host);
+    const path = asString(canonicalContainer.canonical_url);
+    if (host && path && path.includes("/rooms/")) {
+      const url = path.startsWith("http") ? path : `https://${host}${path}`;
+      if (isBookingUrl(url)) {
+        return url;
+      }
+    }
+  }
+
+  const stack = [root];
+  while (stack.length) {
+    const current = stack.pop();
+    if (isRecord(current)) {
+      for (const value of Object.values(current)) {
+        if (typeof value === "string" && isBookingUrl(value)) {
+          return value;
+        }
+        if (isRecord(value) || Array.isArray(value)) {
+          stack.push(value);
+        }
+      }
+      continue;
+    }
     if (Array.isArray(current)) {
       stack.push(...current);
     }
@@ -542,6 +658,17 @@ export const parseAirbnbHtml = (html: string): AirbnbParseResult => {
   const hostName = extractHostName(hostSection);
   if (hostName) {
     values.contact = { name: hostName };
+  }
+
+  const bookingUrl =
+    extractBookingUrlFromData(stayProductDetailPage) ??
+    extractBookingUrlFromData(data) ??
+    extractBookingUrlFromHtml(html);
+  if (bookingUrl) {
+    values.booking = {
+      ...(values.booking ?? {}),
+      bookingUrl,
+    };
   }
 
   return { values, warnings };
