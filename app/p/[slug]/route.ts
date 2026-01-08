@@ -39,7 +39,7 @@ export async function GET(
     ? await (async () => {
         try {
           const response = await fetch(bookingIcalUrl, {
-            headers: { "User-Agent": "bnbfacile-calendar" },
+            headers: { "User-Agent": "bnby-calendar" },
             cache: "no-store",
           });
           if (!response.ok) {

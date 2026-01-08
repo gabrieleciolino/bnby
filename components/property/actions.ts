@@ -11,6 +11,7 @@ import {
   defaultTemplateTheme,
   extractTemplateTheme,
 } from "@/components/property/template-html";
+import { renderOwnerColdInviteEmail } from "@/lib/email/owner-cold-invite";
 import { adminActionClient, authActionClient } from "@/lib/actions/client";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/db/types";
@@ -104,10 +105,7 @@ const resolveImageExtension = (options: {
   );
 };
 
-const getNextGalleryIndex = (
-  urls: string[],
-  propertyId: string
-): number => {
+const getNextGalleryIndex = (urls: string[], propertyId: string): number => {
   let maxIndex = -1;
   for (const url of urls) {
     const storagePath = getStoragePathFromUrl(url);
@@ -188,7 +186,8 @@ const processGalleryItems = async ({
 }): Promise<string[]> => {
   const items = galleryItems ?? [];
   const existingSupabaseUrls = items.filter(
-    (item): item is string => typeof item === "string" && isSupabaseStorageUrl(item)
+    (item): item is string =>
+      typeof item === "string" && isSupabaseStorageUrl(item)
   );
   let nextIndex = getNextGalleryIndex(existingSupabaseUrls, propertyId);
   const uploadedImages: string[] = [];
@@ -329,7 +328,8 @@ export const addPropertyAction = authActionClient
     const { data, error } = await supabase
       .from("property")
       .insert({
-        details: details as Database["public"]["Tables"]["property"]["Row"]["details"],
+        details:
+          details as Database["public"]["Tables"]["property"]["Row"]["details"],
         template: null,
       })
       .select()
@@ -640,5 +640,113 @@ export const savePropertyTemplateAction = authActionClient
 
     return {
       template: normalizedTemplate ?? "",
+    };
+  });
+
+const resolveSenderEmail = (fromValue: string) => {
+  const match = fromValue.match(/<([^>]+)>/);
+  return (match?.[1] ?? fromValue).trim();
+};
+
+export const sendOwnerColdEmailAction = adminActionClient
+  .inputSchema(
+    z.object({
+      propertyId: z.string().uuid(),
+      baseUrl: z.string().min(1),
+    })
+  )
+  .action(async ({ ctx, parsedInput }) => {
+    const { supabase } = ctx;
+    const normalizedBaseUrl = parsedInput.baseUrl.trim().replace(/\/$/, "");
+
+    let baseUrl: URL;
+    try {
+      baseUrl = new URL(normalizedBaseUrl);
+    } catch {
+      throw new Error("Base URL non valido");
+    }
+
+    const { data: propertyData, error: propertyError } = await supabase
+      .from("property")
+      .select("id,user_id,details")
+      .eq("id", parsedInput.propertyId)
+      .single();
+
+    if (propertyError || !propertyData) {
+      throw new Error(propertyError?.message ?? "Proprieta non trovata");
+    }
+
+    if (propertyData.user_id) {
+      throw new Error("La proprieta ha gia un proprietario associato");
+    }
+
+    const details = propertyData.details as PropertyDetailsSchema | null;
+    const propertyName = details?.info?.name?.trim() || "Proprieta";
+    const slug = details?.slug?.trim();
+    const ownerEmail = details?.contact?.email?.trim();
+
+    if (!slug) {
+      throw new Error("Slug proprieta non disponibile");
+    }
+
+    if (!ownerEmail) {
+      throw new Error("Email proprietario non disponibile");
+    }
+
+    const previewUrl = `${baseUrl.origin}/p/${slug}.html`;
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const resendFrom = process.env.RESEND_MARKETING_FROM;
+
+    if (!resendApiKey || !resendFrom) {
+      throw new Error("Configurazione email mancante");
+    }
+
+    const replyEmail = resolveSenderEmail(resendFrom);
+    const subject = `La tua anteprima per ${propertyName} e pronta`;
+    const textLines = [
+      `Ciao,`,
+      "",
+      `La landing di ${propertyName} e pronta.`,
+      `Anteprima: ${previewUrl}`,
+      "",
+      "Perche scegliere bnby:",
+      "- Un sito elegante pronto in pochi minuti",
+      "- Richieste e contatti organizzati in un unico pannello",
+      "- Calendario sincronizzato con Airbnb e Booking",
+      "- Personalizzazioni su misura per la tua struttura",
+      "",
+      "Rispondi a questa email per attivare l'account e ricevere accesso.",
+    ];
+
+    const resendResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: resendFrom,
+        to: ownerEmail,
+        subject,
+        html: renderOwnerColdInviteEmail({
+          baseUrl: baseUrl.origin,
+          propertyName,
+          previewUrl,
+          replyEmail,
+        }),
+        text: textLines.join("\n"),
+        reply_to: replyEmail || undefined,
+      }),
+    });
+
+    if (!resendResponse.ok) {
+      const errorText = await resendResponse.text();
+      throw new Error(errorText || "Invio email non riuscito");
+    }
+
+    return {
+      sent: true,
+      ownerEmail,
+      previewUrl,
     };
   });

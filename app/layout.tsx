@@ -15,9 +15,9 @@ const unbounded = Unbounded({
 });
 
 export const metadata: Metadata = {
-  title: "BnBFacile | Template per siti BnB",
+  title: "bnby.me | Crea il tuo sito per il tuo BnB in pochi minuti",
   description:
-    "BnBFacile e un SaaS per creare siti BnB con template curati da 99 EUR e consulenza custom quando vuoi.",
+    "bnby ti consente di creare il sito per il tuo BnB in pochi minuti. ",
 };
 
 export default function RootLayout({

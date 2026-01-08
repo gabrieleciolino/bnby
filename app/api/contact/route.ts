@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { PropertyDetailsSchema } from "@/components/property/schema";
+import { renderNewContactOwnerEmail } from "@/lib/email/new-contact-owner";
 
 const contactPayloadSchema = z.object({
   propertyId: z.string().uuid(),
@@ -40,12 +41,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: existingProperty, error: propertyError } =
-    await supabaseAdmin
-      .from("property")
-      .select("id,user_id,details")
-      .eq("id", payload.propertyId)
-      .maybeSingle();
+  const { data: existingProperty, error: propertyError } = await supabaseAdmin
+    .from("property")
+    .select("id,user_id,details")
+    .eq("id", payload.propertyId)
+    .maybeSingle();
 
   if (propertyError || !existingProperty) {
     return jsonResponse(
@@ -85,7 +85,9 @@ export async function POST(request: Request) {
 
     if (ownerError) {
       return jsonResponse(
-        { error: ownerError.message || "Impossibile recuperare il proprietario" },
+        {
+          error: ownerError.message || "Impossibile recuperare il proprietario",
+        },
         500
       );
     }
@@ -94,22 +96,18 @@ export async function POST(request: Request) {
   }
 
   if (!ownerEmail) {
-    return jsonResponse(
-      { error: "Email proprietario non disponibile" },
-      500
-    );
+    return jsonResponse({ error: "Email proprietario non disponibile" }, 500);
   }
 
   const resendApiKey = process.env.RESEND_API_KEY;
-  const resendFrom = process.env.RESEND_FROM;
+  const resendFrom = process.env.RESEND_INFO_FROM;
 
   if (!resendApiKey || !resendFrom) {
-    return jsonResponse(
-      { error: "Configurazione email mancante" },
-      500
-    );
+    return jsonResponse({ error: "Configurazione email mancante" }, 500);
   }
 
+  const baseUrl = new URL(request.url).origin;
+  const contactLink = `${baseUrl}/dashboard/property/${payload.propertyId}/contacts`;
   const messageLines = [
     `Nuovo contatto per ${propertyName}`,
     "",
@@ -131,6 +129,15 @@ export async function POST(request: Request) {
       from: resendFrom,
       to: ownerEmail,
       subject: `Nuovo contatto: ${propertyName}`,
+      html: renderNewContactOwnerEmail({
+        baseUrl,
+        propertyName,
+        contactName: payload.name.trim(),
+        contactEmail: emailValue || null,
+        contactPhone: phoneValue || null,
+        message: payload.message.trim(),
+        contactLink,
+      }),
       text: messageLines.join("\n"),
       reply_to: emailValue || undefined,
     }),
@@ -156,9 +163,7 @@ export async function POST(request: Request) {
     if (notificationError) {
       return jsonResponse(
         {
-          error:
-            notificationError.message ||
-            "Impossibile creare la notifica",
+          error: notificationError.message || "Impossibile creare la notifica",
         },
         500
       );
