@@ -95,10 +95,6 @@ export default function ImportFromHtmlSheet() {
       applyNumberValue("info.rooms", values.info.rooms);
       applyNumberValue("info.bathrooms", values.info.bathrooms);
       applyNumberValue("info.guests", values.info.guests);
-      applyStringValue(
-        "info.cancellationPolicy",
-        values.info.cancellationPolicy
-      );
     }
 
     if (values.services) {
@@ -111,8 +107,6 @@ export default function ImportFromHtmlSheet() {
 
     if (values.position) {
       applyStringValue("position.address", values.position.address);
-      applyStringValue("position.city", values.position.city);
-      applyStringValue("position.country", values.position.country);
       applyNumberValue("position.lat", values.position.lat);
       applyNumberValue("position.lng", values.position.lng);
     }

@@ -14,16 +14,12 @@ export const propertySchema = z.object({
     rooms: z.number().min(1),
     bathrooms: z.number().min(0),
     guests: z.number().min(1),
-    houseRules: z.string().optional(),
-    cancellationPolicy: z.string().optional(),
   }),
   services: z.array(z.string()).default([]),
   gallery: gallerySchema.default([]),
   position: z
     .object({
       address: z.string().min(1),
-      city: z.string().min(1),
-      country: z.string().min(1),
       lat: z.number().optional(),
       lng: z.number().optional(),
     })
@@ -37,7 +33,6 @@ export const propertySchema = z.object({
     .optional(),
   booking: z
     .object({
-      icalUrl: optionalUrlSchema,
       bookingUrl: optionalUrlSchema,
     })
     .optional(),

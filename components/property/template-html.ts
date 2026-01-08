@@ -1,6 +1,5 @@
 import { services } from "@/components/property/services";
 import type { PropertyFormValues } from "@/components/property/schema";
-import type { BookingAvailability } from "@/lib/booking/ical";
 import {
   blockKeys,
   defaultBlockOrder,
@@ -286,7 +285,6 @@ type TemplateInput = {
   faqs?: PropertyFormValues["faqs"];
   landingCopy?: LandingCopy;
   landing?: PropertyFormValues["landing"];
-  bookingAvailability?: BookingAvailability | null;
   theme?: TemplateTheme;
 };
 
@@ -484,7 +482,6 @@ export const buildPropertyLandingHtml = ({
   faqs,
   landingCopy: landingCopyInput,
   landing,
-  bookingAvailability,
   theme,
 }: TemplateInput): string => {
   const resolvedTheme = {
@@ -570,30 +567,17 @@ export const buildPropertyLandingHtml = ({
   const heroOutlineHtml = heroOutline
     ? `<p class="hero-outline">${escapeHtml(heroOutline)}</p>`
     : "";
-  const bookingIcalUrl = normalizeUrl(booking?.icalUrl);
   const bookingDirectUrl = normalizeUrl(booking?.bookingUrl);
-  const bookingMode = bookingIcalUrl
-    ? "ical"
-    : bookingDirectUrl
-    ? "direct"
-    : "none";
-  const bookingCtaHref =
-    bookingMode === "ical"
-      ? "#prenotazioni"
-      : bookingMode === "direct"
-      ? bookingDirectUrl ?? "#contatti"
-      : "#contatti";
-  const bookingCtaAttrs =
-    bookingMode === "ical"
-      ? "data-booking-open"
-      : bookingMode === "direct"
-      ? ""
-      : "data-scroll";
+  const bookingCtaHtml = bookingDirectUrl
+    ? `<a class="btn btn-primary" href="${escapeHtml(
+        bookingDirectUrl
+      )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
+        heroPrimaryCta
+      )}</a>`
+    : "";
   const heroActionsHtml = `
     <div class="hero-actions">
-      <a class="btn btn-primary" href="${escapeHtml(
-        bookingCtaHref
-      )}" ${bookingCtaAttrs}>${escapeHtml(heroPrimaryCta)}</a>
+      ${bookingCtaHtml}
       <a class="btn btn-outline" href="#contatti" data-scroll>${escapeHtml(
         heroSecondaryCta
       )}</a>
@@ -721,7 +705,7 @@ export const buildPropertyLandingHtml = ({
       </div>`
     : "";
 
-  const locationLine = [position?.address, position?.city, position?.country]
+  const locationLine = [position?.address]
     .map((value) => value?.trim())
     .filter(Boolean)
     .join(", ");
@@ -758,136 +742,7 @@ export const buildPropertyLandingHtml = ({
   const faqItems = (faqs ?? []).filter(
     (item) => item?.question || item?.answer
   );
-  const houseRules = normalizeCopy(info?.houseRules);
-  const cancellationPolicy = normalizeCopy(info?.cancellationPolicy);
-  const descriptionExtras =
-    houseRules || cancellationPolicy
-      ? `
-        <div class="description-extras">
-          ${
-            houseRules
-              ? `<div class="description-extra">
-              <h3>Regole di casa</h3>
-              <p>${formatText(houseRules)}</p>
-            </div>`
-              : ""
-          }
-          ${
-            cancellationPolicy
-              ? `<div class="description-extra">
-              <h3>Termini di cancellazione</h3>
-              <p>${formatText(cancellationPolicy)}</p>
-            </div>`
-              : ""
-          }
-      </div>
-    `
-      : "";
 
-  const bookingDataJson =
-    bookingMode === "ical"
-      ? JSON.stringify({
-          unavailableDates: bookingAvailability?.unavailableDates ?? [],
-        }).replace(/</g, "\\u003c")
-      : "null";
-
-  const bookingDataScript =
-    bookingMode === "ical"
-      ? `<script type="application/json" id="booking-data">${bookingDataJson}</script>`
-      : "";
-
-  const bookingModalHtml =
-    bookingMode === "ical"
-      ? `
-      <div class="booking-modal" id="prenotazioni" data-booking-modal aria-hidden="true" role="dialog" aria-label="Prenota ora">
-        <div class="booking-modal-backdrop" data-booking-close></div>
-        <div class="booking-modal-content" role="document">
-          <div class="booking-modal-header">
-            <div>
-              <p class="booking-modal-eyebrow">Prenota ora</p>
-              <h3 class="booking-modal-title">${escapeHtml(propertyName)}</h3>
-              <p class="booking-modal-subtitle">Seleziona le date disponibili e invia la richiesta via email.</p>
-            </div>
-            <button class="btn btn-outline booking-modal-close" type="button" data-booking-close>Chiudi</button>
-          </div>
-          <form class="contact-form booking-form" data-booking-form data-contact-email="${escapeHtml(
-            contactEmail ?? ""
-          )}">
-              <div class="booking-form-grid">
-                <div class="booking-calendar-panel">
-                <div class="booking-calendar-header">
-                  <p class="booking-calendar-property-title">${escapeHtml(
-                    propertyName
-                  )}</p>
-                  <p class="booking-calendar-title">Seleziona il periodo</p>
-                  <p
-                    class="booking-calendar-selection"
-                    data-booking-selection
-                    aria-live="polite"
-                  >
-                    Seleziona check-in e check-out
-                  </p>
-                </div>
-                <div class="booking-calendar-nav">
-                  <button
-                    type="button"
-                    data-booking-calendar-prev
-                    aria-label="Mesi precedenti"
-                  >
-                    ‹‹
-                  </button>
-                  <button
-                    type="button"
-                    data-booking-calendar-next
-                    aria-label="Prossimi mesi"
-                  >
-                    ››
-                  </button>
-                </div>
-                <div class="booking-calendar-legend">
-                  <span>
-                    <i></i>Disponibile
-                  </span>
-                  <span>
-                    <i class="is-unavailable"></i>Non disponibile
-                  </span>
-                </div>
-                <div
-                  class="booking-calendar"
-                  data-booking-calendar
-                  aria-label="Calendario prenotazioni"
-                ></div>
-              </div>
-              <label>
-                <span>Ospiti</span>
-                <input type="number" name="guests" min="1" placeholder="2" required />
-              </label>
-            </div>
-            <input type="hidden" name="startDate" required />
-            <input type="hidden" name="endDate" required />
-            <label>
-              <span>Nome</span>
-              <input type="text" name="name" placeholder="Il tuo nome" required />
-            </label>
-            <label>
-              <span>Email</span>
-              <input type="email" name="email" placeholder="La tua email" />
-            </label>
-            <label>
-              <span>Telefono</span>
-              <input type="tel" name="phone" placeholder="es. +39 333 1234567" />
-            </label>
-            <label>
-              <span>Messaggio</span>
-              <textarea name="message" rows="4" placeholder="Note aggiuntive"></textarea>
-            </label>
-            <p class="booking-warning" data-booking-warning></p>
-            <button class="btn btn-primary" type="submit">Invia prenotazione</button>
-          </form>
-        </div>
-      </div>
-    `
-      : "";
 
   const faqHtml =
     faqItems.length > 0
@@ -963,10 +818,14 @@ export const buildPropertyLandingHtml = ({
       <div class="description-panel" data-reveal>
         ${descriptionStatsHtml}
         <p>${formatText(description)}</p>
-        ${descriptionExtras}
       </div>
     </section>
   `;
+
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
+  const turnstileScript = turnstileSiteKey
+    ? `<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>`
+    : "";
 
   const contactFormHtml = contactEmail
     ? `
@@ -976,6 +835,12 @@ export const buildPropertyLandingHtml = ({
           <input type="hidden" name="propertyId" value="${escapeHtml(
             propertyIdValue
           )}" />
+          <input type="hidden" name="formStart" data-form-start />
+          <input type="hidden" name="turnstileToken" data-turnstile-token />
+          <label class="contact-hp" aria-hidden="true">
+            <span>Company</span>
+            <input type="text" name="company" tabindex="-1" autocomplete="off" />
+          </label>
           <label>
             <span>Nome</span>
             <input type="text" name="name" placeholder="Il tuo nome" required />
@@ -992,6 +857,13 @@ export const buildPropertyLandingHtml = ({
             <span>Messaggio</span>
             <textarea name="message" rows="4" placeholder="Scrivi qui..." required></textarea>
           </label>
+          ${
+            turnstileSiteKey
+              ? `<div class="contact-captcha" data-turnstile data-sitekey="${escapeHtml(
+                  turnstileSiteKey
+                )}"></div>`
+              : ""
+          }
           <p class="contact-warning" data-contact-warning></p>
           <button class="btn btn-primary" type="submit">Invia richiesta</button>
         </form>
@@ -1182,6 +1054,7 @@ export const buildPropertyLandingHtml = ({
     <link href="${googleFontsUrl}" rel="stylesheet" />`
         : ""
     }
+    ${turnstileScript}
     <style>
       :root {
         --ink: ${palette.colors.ink};
@@ -1645,261 +1518,6 @@ export const buildPropertyLandingHtml = ({
         border-color: var(--accent);
       }
 
-      .booking-modal {
-        position: fixed;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 999;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-      }
-
-      .booking-modal.is-open {
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-      .booking-modal-backdrop {
-        position: absolute;
-        inset: 0;
-        background: rgba(10, 10, 12, 0.7);
-      }
-
-      .booking-modal-content {
-        position: relative;
-        z-index: 2;
-        width: min(720px, 94vw);
-        max-height: 92vh;
-        overflow: auto;
-        background: var(--modal-bg);
-        color: var(--modal-ink);
-        border-radius: 18px;
-        padding: 24px;
-        box-shadow: var(--shadow-xl);
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-      }
-
-      .booking-modal-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-      }
-
-      .booking-modal-header h3 {
-        margin: 0;
-        font-family: var(--font-heading);
-        font-size: clamp(1.4rem, 2.4vw, 1.9rem);
-        color: var(--ink);
-      }
-
-      .booking-modal-eyebrow {
-        margin: 0 0 6px;
-        text-transform: uppercase;
-        letter-spacing: 0.24em;
-        font-size: 0.7rem;
-        color: var(--muted);
-      }
-
-      .booking-modal-subtitle {
-        margin: 6px 0 0;
-        color: var(--muted);
-      }
-
-      .booking-form {
-        gap: 16px;
-      }
-
-      .booking-form-grid {
-        display: grid;
-        gap: 14px;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      }
-
-      .booking-calendar-panel {
-        grid-column: 1 / -1;
-        border: 1px solid var(--line);
-        border-radius: var(--radius-lg);
-        padding: 18px;
-        background: color-mix(in srgb, var(--card) 85%, var(--bg));
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        box-shadow: var(--shadow-sm);
-      }
-
-      .booking-calendar-header {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .booking-calendar-nav {
-        display: inline-flex;
-        gap: 8px;
-        align-self: flex-end;
-      }
-
-      .booking-calendar-nav button {
-        border: 1px solid color-mix(in srgb, var(--line) 70%, var(--card));
-        background: color-mix(in srgb, var(--card) 90%, var(--bg));
-        color: var(--ink);
-        font-weight: 600;
-        padding: 4px 10px;
-        border-radius: 999px;
-        cursor: pointer;
-        transition: background 0.2s ease, border-color 0.2s ease;
-      }
-
-      .booking-calendar-nav button:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-
-      .booking-calendar-property-title {
-        margin: 0;
-        font-weight: 700;
-        font-size: 0.95rem;
-        color: var(--ink);
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-      }
-
-      .booking-calendar-title {
-        margin: 0;
-        font-weight: 600;
-        color: var(--ink);
-        text-shadow: 0 1px 0 color-mix(in srgb, var(--card) 40%, var(--ink));
-      }
-
-      .booking-calendar-selection {
-        margin: 0;
-        color: color-mix(in srgb, var(--ink) 70%, var(--muted));
-        font-size: 0.9rem;
-      }
-
-      .booking-calendar-legend {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        font-size: 0.75rem;
-      }
-
-      .booking-calendar-legend span {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        color: var(--muted);
-      }
-
-      .booking-calendar-legend i {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        border: 1px solid color-mix(in srgb, var(--line) 70%, var(--card));
-        display: inline-block;
-        background: color-mix(in srgb, var(--line) 40%, var(--card));
-      }
-
-      .booking-calendar-legend i.is-unavailable {
-        background: color-mix(in srgb, var(--muted) 70%, var(--card));
-        border-color: color-mix(in srgb, var(--muted) 90%, var(--card));
-      }
-
-      .booking-calendar {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 12px;
-      }
-
-      .booking-calendar-month {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .booking-calendar-month-label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--ink);
-      }
-
-      .booking-calendar-weekdays,
-      .booking-calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
-        gap: 4px;
-      }
-
-      .booking-calendar-weekdays span {
-        font-size: 0.6rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: var(--muted);
-      }
-
-      .booking-calendar-day {
-        aspect-ratio: 1 / 1;
-        border-radius: 10px;
-        border: 1px solid color-mix(in srgb, var(--line) 80%, var(--card));
-        background: color-mix(in srgb, var(--card) 90%, var(--bg));
-        color: var(--ink);
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-      }
-
-      .booking-calendar-day:hover:not(:disabled) {
-        border-color: var(--accent);
-        background: rgba(255, 255, 255, 0.08);
-        background: color-mix(in srgb, var(--accent) 12%, var(--card));
-      }
-
-      .booking-calendar-day.is-start,
-      .booking-calendar-day.is-end {
-        border-color: var(--accent);
-        background: var(--accent);
-        color: #fff;
-      }
-
-      .booking-calendar-day.is-in-range {
-        background: rgba(95, 43, 255, 0.12);
-        border-color: rgba(95, 43, 255, 0.3);
-        background: color-mix(in srgb, var(--accent) 20%, var(--card));
-        border-color: color-mix(in srgb, var(--accent) 65%, var(--card));
-      }
-
-      .booking-calendar-day.is-unavailable {
-        background: color-mix(in srgb, var(--muted) 65%, var(--card));
-        border-color: color-mix(in srgb, var(--muted) 80%, var(--line-soft));
-        color: color-mix(in srgb, var(--muted) 90%, #000);
-        cursor: not-allowed;
-      }
-
-      .booking-calendar-day.is-disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        background: color-mix(in srgb, var(--line-soft) 60%, var(--card));
-        color: var(--muted);
-      }
-
-      .booking-calendar-day--empty {
-        background: transparent;
-        border: none;
-        cursor: default;
-      }
-
-      .booking-warning,
       .contact-warning {
         display: none;
         margin: 0;
@@ -1910,7 +1528,6 @@ export const buildPropertyLandingHtml = ({
         color: #f7c2b1;
       }
 
-      .booking-warning.is-visible,
       .contact-warning.is-visible {
         display: block;
       }
@@ -1948,12 +1565,6 @@ export const buildPropertyLandingHtml = ({
           width: 40px;
           height: 40px;
           font-size: 1rem;
-        }
-        .booking-calendar-panel {
-          padding: 14px;
-        }
-        .booking-calendar {
-          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         }
       }
 
@@ -2035,22 +1646,6 @@ export const buildPropertyLandingHtml = ({
           padding: 6px 28px;
         }
 
-        .booking-modal-content {
-          width: 100vw;
-          height: 100vh;
-          border-radius: 0;
-          padding: 20px 16px;
-        }
-
-        .booking-form-grid {
-          grid-template-columns: 1fr;
-        }
-        .booking-calendar-panel {
-          padding: 14px;
-        }
-        .booking-calendar {
-          grid-template-columns: 1fr;
-        }
       }
 
       .description-panel,
@@ -2160,6 +1755,23 @@ export const buildPropertyLandingHtml = ({
       .contact-form {
         display: grid;
         gap: 12px;
+      }
+
+      .contact-form .contact-hp {
+        position: absolute;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+
+      .contact-captcha {
+        display: none;
+        margin-top: 4px;
+      }
+
+      .contact-captcha.is-visible {
+        display: block;
       }
 
       .contact-form label {
@@ -2332,8 +1944,6 @@ export const buildPropertyLandingHtml = ({
   <body>
     ${orderedSectionsHtml}
     ${galleryModalHtml}
-    ${bookingModalHtml}
-    ${bookingDataScript}
 
     <script>
       const links = document.querySelectorAll("[data-scroll]");
@@ -2485,466 +2095,16 @@ export const buildPropertyLandingHtml = ({
         });
       }
 
-      const bookingDataEl = document.getElementById("booking-data");
-      let bookingData = null;
-      if (bookingDataEl && bookingDataEl.textContent) {
-        try {
-          bookingData = JSON.parse(bookingDataEl.textContent);
-        } catch {
-          bookingData = null;
-        }
-      }
-      const unavailableDates = new Set(
-        (bookingData?.unavailableDates || []).filter(
-          (value) => typeof value === "string"
-        )
-      );
-
-      const bookingModal = document.querySelector("[data-booking-modal]");
-      const bookingOpenButtons = document.querySelectorAll(
-        "[data-booking-open]"
-      );
-      if (bookingModal && bookingOpenButtons.length > 0) {
-        const closeButtons = bookingModal.querySelectorAll(
-          "[data-booking-close]"
-        );
-        const bookingForm = bookingModal.querySelector("[data-booking-form]");
-        const warningEl = bookingModal.querySelector("[data-booking-warning]");
-        const startDateInput = bookingModal.querySelector(
-          "input[name='startDate']"
-        );
-        const endDateInput = bookingModal.querySelector("input[name='endDate']");
-        const guestEmailInput = bookingForm?.querySelector("input[name='email']");
-        const guestPhoneInput = bookingForm?.querySelector("input[name='phone']");
-        const submitButton = bookingModal.querySelector("button[type='submit']");
-        if (submitButton) {
-          submitButton.disabled = true;
-        }
-        const email = bookingForm?.getAttribute("data-contact-email");
-
-        const formatDate = (date) => {
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, "0");
-          const day = String(date.getDate()).padStart(2, "0");
-          return year + "-" + month + "-" + day;
-        };
-
-        const parseDate = (value) => {
-          const parts = value.split("-").map((part) => Number.parseInt(part, 10));
-          if (parts.length !== 3 || parts.some(Number.isNaN)) {
-            return null;
-          }
-          return new Date(parts[0], parts[1] - 1, parts[2]);
-        };
-
-        const addDays = (date, days) => {
-          const next = new Date(date);
-          next.setDate(next.getDate() + days);
-          return next;
-        };
-
-        let calendarWarningActive = false;
-        const setWarning = (message, options = {}) => {
-          if (!warningEl || !submitButton) return;
-          const source = options.source;
-          if (source === "calendar") {
-            calendarWarningActive = Boolean(message);
-          } else if (message) {
-            calendarWarningActive = false;
-          }
-          if (message) {
-            warningEl.textContent = message;
-            warningEl.classList.add("is-visible");
-            submitButton.disabled = true;
-            return;
-          }
-          if (!calendarWarningActive) {
-            warningEl.textContent = "";
-            warningEl.classList.remove("is-visible");
-            submitButton.disabled = false;
-          }
-        };
-
-        const isRangeAvailable = (start, end) => {
-          let current = new Date(start);
-          while (current < end) {
-            const key = formatDate(current);
-            if (unavailableDates.has(key)) {
-              return false;
-            }
-            current = addDays(current, 1);
-          }
-          return true;
-        };
-
-        const CALENDAR_MONTHS = 3;
-        const monthNames = [
-          "Gennaio",
-          "Febbraio",
-          "Marzo",
-          "Aprile",
-          "Maggio",
-          "Giugno",
-          "Luglio",
-          "Agosto",
-          "Settembre",
-          "Ottobre",
-          "Novembre",
-          "Dicembre",
-        ];
-        const weekdayLabels = ["Lu", "Ma", "Me", "Gi", "Ve", "Sa", "Do"];
-        const calendarContainer = bookingModal.querySelector(
-          "[data-booking-calendar]"
-        );
-        const calendarSelection = bookingModal.querySelector(
-          "[data-booking-selection]"
-        );
-        const calendarNavPrev = bookingModal.querySelector(
-          "[data-booking-calendar-prev]"
-        );
-        const calendarNavNext = bookingModal.querySelector(
-          "[data-booking-calendar-next]"
-        );
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        let calendarOffsetMonths = 0;
-        const getCalendarStartMonth = () => {
-          const start = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            1
-          );
-          start.setMonth(start.getMonth() + calendarOffsetMonths);
-          return start;
-        };
-        let selectionStart = startDateInput?.value
-          ? parseDate(startDateInput.value)
-          : null;
-        let selectionEnd = endDateInput?.value
-          ? parseDate(endDateInput.value)
-          : null;
-        const selectionFormatter = new Intl.DateTimeFormat("it-IT", {
-          day: "numeric",
-          month: "short",
-        });
-
-        const updateSelectionInfo = () => {
-          if (startDateInput) {
-            startDateInput.value = selectionStart
-              ? formatDate(selectionStart)
-              : "";
-          }
-          if (endDateInput) {
-            endDateInput.value = selectionEnd
-              ? formatDate(selectionEnd)
-              : "";
-          }
-          if (!calendarSelection) return;
-          if (selectionStart && selectionEnd) {
-            calendarSelection.textContent =
-              "Check-in " +
-              selectionFormatter.format(selectionStart) +
-              " · Check-out " +
-              selectionFormatter.format(selectionEnd);
-          } else if (selectionStart) {
-            calendarSelection.textContent =
-              "Check-in " +
-              selectionFormatter.format(selectionStart) +
-              " · seleziona il check-out";
-          } else {
-            calendarSelection.textContent = "Seleziona check-in e check-out";
-          }
-        };
-
-        const renderCalendar = () => {
-          if (!calendarContainer) return;
-          const calendarStartMonth = getCalendarStartMonth();
-          const monthsHtml = [];
-          for (let offset = 0; offset < CALENDAR_MONTHS; offset++) {
-            const monthDate = new Date(
-              calendarStartMonth.getFullYear(),
-              calendarStartMonth.getMonth() + offset,
-              1
-            );
-            const year = monthDate.getFullYear();
-            const month = monthDate.getMonth();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const firstWeekday = (monthDate.getDay() + 6) % 7;
-            let cells = "";
-            for (let blank = 0; blank < firstWeekday; blank++) {
-              cells += '<span class="booking-calendar-day booking-calendar-day--empty"></span>';
-            }
-            for (let day = 1; day <= daysInMonth; day++) {
-              const currentDate = new Date(year, month, day);
-              const key = formatDate(currentDate);
-              const dayTime = currentDate.getTime();
-              const isUnavailableDay = unavailableDates.has(key);
-              const isPast = currentDate < today;
-              const disabled = isUnavailableDay || isPast;
-              const classes = ["booking-calendar-day"];
-              if (selectionStart && selectionStart.getTime() === dayTime) {
-                classes.push("is-start");
-              }
-              if (selectionEnd && selectionEnd.getTime() === dayTime) {
-                classes.push("is-end");
-              }
-              if (
-                selectionStart &&
-                selectionEnd &&
-                dayTime > selectionStart.getTime() &&
-                dayTime < selectionEnd.getTime()
-              ) {
-                classes.push("is-in-range");
-              }
-              if (isUnavailableDay) {
-                classes.push("is-unavailable");
-              }
-              if (disabled) {
-                classes.push("is-disabled");
-              }
-              const disabledAttr = disabled ? "disabled" : "";
-              cells +=
-                '<button type="button" ' +
-                disabledAttr +
-                ' class="' +
-                classes.join(" ") +
-                '" data-booking-day="' +
-                key +
-                '">' +
-                day +
-                "</button>";
-            }
-            monthsHtml.push(
-              '<div class="booking-calendar-month">' +
-                '<div class="booking-calendar-month-label">' +
-                monthNames[month] +
-                " " +
-                year +
-                "</div>" +
-                '<div class="booking-calendar-weekdays">' +
-                weekdayLabels
-                  .map((label) => "<span>" + label + "</span>")
-                  .join("") +
-                "</div>" +
-                '<div class="booking-calendar-grid">' +
-                cells +
-                "</div>" +
-              "</div>"
-            );
-          }
-          calendarContainer.innerHTML = monthsHtml.join("");
-        };
-
-        const updateNavigationState = () => {
-          if (calendarNavPrev) {
-            calendarNavPrev.disabled = calendarOffsetMonths <= 0;
-          }
-        };
-
-        const updateCalendar = () => {
-          renderCalendar();
-          updateNavigationState();
-        };
-
-        const handleCalendarSelection = (date) => {
-          const time = date.getTime();
-          if (
-            !selectionStart ||
-            selectionEnd ||
-            time <= (selectionStart?.getTime() ?? 0)
-          ) {
-            selectionStart = date;
-            selectionEnd = null;
-            setWarning("", { source: "calendar" });
-          } else {
-            if (isRangeAvailable(selectionStart, date)) {
-              selectionEnd = date;
-              setWarning("", { source: "calendar" });
-            } else {
-              selectionEnd = null;
-              setWarning(
-                "Il periodo selezionato include date non disponibili.",
-                { source: "calendar" }
-              );
-            }
-          }
-          updateSelectionInfo();
-          updateCalendar();
-          validateBooking();
-        };
-
-        if (calendarContainer) {
-          calendarContainer.addEventListener("click", (event) => {
-            const target =
-              event.target instanceof Element
-                ? event.target.closest("[data-booking-day]")
-                : null;
-            if (!target || target.disabled) return;
-            const value = target.getAttribute("data-booking-day");
-            if (!value) return;
-            const day = parseDate(value);
-            if (!day) return;
-            handleCalendarSelection(day);
-          });
-        }
-
-        updateSelectionInfo();
-        updateCalendar();
-
-        if (calendarNavPrev) {
-          calendarNavPrev.addEventListener("click", (event) => {
-            event.preventDefault();
-            if (calendarOffsetMonths <= 0) return;
-            calendarOffsetMonths = Math.max(
-              0,
-              calendarOffsetMonths - CALENDAR_MONTHS
-            );
-            updateCalendar();
-          });
-        }
-
-        if (calendarNavNext) {
-          calendarNavNext.addEventListener("click", (event) => {
-            event.preventDefault();
-            calendarOffsetMonths += CALENDAR_MONTHS;
-            updateCalendar();
-          });
-        }
-
-        const validateBooking = () => {
-          if (!submitButton) return;
-          if (!email) {
-            setWarning("Email di contatto non disponibile.");
-            return;
-          }
-          const startValue = startDateInput?.value;
-          const endValue = endDateInput?.value;
-          if (startValue && unavailableDates.has(startValue)) {
-            setWarning("La data di check-in non e disponibile.");
-            return;
-          }
-          const hasSelection = Boolean(startValue && endValue);
-          if (!hasSelection) {
-            submitButton.disabled = true;
-            return;
-          }
-          const guestNameValue = bookingForm
-            ? String(bookingForm.querySelector("input[name='name']")?.value || "")
-            : "";
-          if (!guestNameValue.trim()) {
-            setWarning("Inserisci il tuo nome.");
-            return;
-          }
-          const guestsValue = bookingForm
-            ? String(bookingForm.querySelector("input[name='guests']")?.value || "")
-            : "";
-          if (!guestsValue.trim()) {
-            setWarning("Indica il numero di ospiti.");
-            return;
-          }
-          const hasGuestContact =
-            Boolean(guestEmailInput?.value.trim()) ||
-            Boolean(guestPhoneInput?.value.trim());
-          if (!hasGuestContact) {
-            setWarning("Inserisci una email o un telefono di contatto.");
-            return;
-          }
-          const start = parseDate(startValue);
-          const end = parseDate(endValue);
-          if (!start || !end || end <= start) {
-            setWarning("Seleziona un check-out successivo al check-in.");
-            return;
-          }
-          if (!isRangeAvailable(start, end)) {
-            setWarning(
-              "Il periodo selezionato include date non disponibili."
-            );
-            return;
-          }
-          setWarning("");
-        };
-
-        const openBooking = () => {
-          bookingModal.classList.add("is-open");
-          bookingModal.setAttribute("aria-hidden", "false");
-          document.body.style.overflow = "hidden";
-          validateBooking();
-        };
-
-        const closeBooking = () => {
-          bookingModal.classList.remove("is-open");
-          bookingModal.setAttribute("aria-hidden", "true");
-          document.body.style.overflow = "";
-        };
-
-        bookingOpenButtons.forEach((button) => {
-          button.addEventListener("click", (event) => {
-            event.preventDefault();
-            openBooking();
-          });
-        });
-
-        closeButtons.forEach((button) => {
-          button.addEventListener("click", closeBooking);
-        });
-
-        if (bookingForm) {
-          bookingForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-            if (!email) {
-              setWarning("Email di contatto non disponibile.");
-              return;
-            }
-            validateBooking();
-            if (submitButton?.disabled) return;
-            const data = new FormData(bookingForm);
-            const name = String(data.get("name") || "");
-            const guestEmail = String(data.get("email") || "");
-            const guestPhone = String(data.get("phone") || "");
-            const message = String(data.get("message") || "");
-            const startDate = String(data.get("startDate") || "");
-            const endDate = String(data.get("endDate") || "");
-            const guests = String(data.get("guests") || "");
-            const subject = name
-              ? "Richiesta prenotazione da " + name
-              : "Richiesta prenotazione";
-            const body = [
-              "Nome: " + name,
-              guestEmail ? "Email: " + guestEmail : "",
-              guestPhone ? "Telefono: " + guestPhone : "",
-              startDate ? "Check-in: " + startDate : "",
-              endDate ? "Check-out: " + endDate : "",
-              guests ? "Ospiti: " + guests : "",
-              "",
-              message,
-            ]
-              .filter((line) => line.trim().length > 0)
-              .join("\\n")
-              .trim();
-            const href =
-              "mailto:" +
-              email +
-              "?subject=" +
-              encodeURIComponent(subject) +
-              "&body=" +
-              encodeURIComponent(body);
-            window.location.href = href;
-          });
-        }
-
-        document.addEventListener("keydown", (event) => {
-          if (!bookingModal.classList.contains("is-open")) return;
-          if (event.key === "Escape") {
-            closeBooking();
-          }
-        });
-      }
-
       const contactForms = document.querySelectorAll("[data-contact-form]");
       contactForms.forEach((form) => {
         const warningEl = form.querySelector("[data-contact-warning]");
         const propertyInput = form.querySelector("input[name='propertyId']");
         const submitButton = form.querySelector("button[type='submit']");
+        const formStartInput = form.querySelector("[data-form-start]");
+        const captchaContainer = form.querySelector("[data-turnstile]");
+        const captchaTokenInput = form.querySelector("[data-turnstile-token]");
+        const captchaSiteKey = captchaContainer?.getAttribute("data-sitekey");
+        let captchaWidgetId = null;
         const setContactMessage = (message, options = {}) => {
           if (!warningEl) return;
           warningEl.classList.remove("is-visible", "is-success");
@@ -2958,6 +2118,50 @@ export const buildPropertyLandingHtml = ({
             warningEl.classList.add("is-success");
           }
         };
+        const resetFormStart = () => {
+          if (formStartInput) {
+            formStartInput.value = String(Date.now());
+          }
+        };
+        const showCaptcha = () => {
+          if (!captchaContainer || !captchaSiteKey) {
+            setContactMessage(
+              "Verifica anti-spam non disponibile. Riprova più tardi."
+            );
+            return false;
+          }
+          captchaContainer.classList.add("is-visible");
+          if (captchaContainer.dataset.rendered === "true") {
+            return true;
+          }
+          if (!window.turnstile) {
+            setContactMessage(
+              "Verifica anti-spam non disponibile. Riprova più tardi."
+            );
+            return false;
+          }
+          captchaWidgetId = window.turnstile.render(captchaContainer, {
+            sitekey: captchaSiteKey,
+            callback: (token) => {
+              if (captchaTokenInput) {
+                captchaTokenInput.value = token;
+              }
+            },
+            "error-callback": () => {
+              if (captchaTokenInput) {
+                captchaTokenInput.value = "";
+              }
+            },
+            "expired-callback": () => {
+              if (captchaTokenInput) {
+                captchaTokenInput.value = "";
+              }
+            },
+          });
+          captchaContainer.dataset.rendered = "true";
+          return true;
+        };
+        resetFormStart();
 
         form.addEventListener("submit", async (event) => {
           event.preventDefault();
@@ -2985,12 +2189,29 @@ export const buildPropertyLandingHtml = ({
             setContactMessage("Inserisci email o telefono.");
             return;
           }
+          if (
+            captchaContainer?.classList.contains("is-visible") &&
+            captchaTokenInput &&
+            !captchaTokenInput.value
+          ) {
+            setContactMessage("Completa la verifica anti-spam.");
+            return;
+          }
+          const formStartValue = formStartInput
+            ? Number(formStartInput.value)
+            : Number.NaN;
+          const resolvedFormStart = Number.isFinite(formStartValue)
+            ? formStartValue
+            : undefined;
           const payload = {
             propertyId: propertyInput.value,
             name,
             message,
             email: contactEmailValue || null,
             phone: contactPhoneValue || null,
+            formStart: resolvedFormStart,
+            company: String(data.get("company") || ""),
+            turnstileToken: captchaTokenInput?.value || undefined,
           };
           try {
             if (submitButton) {
@@ -3005,6 +2226,14 @@ export const buildPropertyLandingHtml = ({
             });
             if (!response.ok) {
               const body = await response.json().catch(() => null);
+              if (
+                response.status === 403 &&
+                body?.error === "captcha_required"
+              ) {
+                showCaptcha();
+                setContactMessage("Completa la verifica anti-spam.");
+                return;
+              }
               const errorMsg =
                 body?.error || body?.message || "Errore durante l'invio.";
               setContactMessage(errorMsg);
@@ -3015,6 +2244,16 @@ export const buildPropertyLandingHtml = ({
               { variant: "success" }
             );
             form.reset();
+            resetFormStart();
+            if (captchaTokenInput) {
+              captchaTokenInput.value = "";
+            }
+            if (captchaContainer) {
+              captchaContainer.classList.remove("is-visible");
+            }
+            if (captchaWidgetId && window.turnstile) {
+              window.turnstile.reset(captchaWidgetId);
+            }
           } catch (error) {
             setContactMessage(
               "Errore di rete durante l'invio. Riprova più tardi."

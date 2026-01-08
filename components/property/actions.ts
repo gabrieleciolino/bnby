@@ -293,7 +293,7 @@ export const addPropertyAction = authActionClient
     const gallerySupabase = account?.is_admin ? supabaseAdmin : supabase;
     const {
       slug,
-      info: { name, description, rooms, bathrooms, guests, cancellationPolicy },
+      info: { name, description, rooms, bathrooms, guests },
       services,
       position,
       contact,
@@ -313,7 +313,6 @@ export const addPropertyAction = authActionClient
         rooms,
         bathrooms,
         guests,
-        cancellationPolicy,
       },
       services,
       position,

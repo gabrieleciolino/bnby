@@ -76,15 +76,11 @@ export default function PropertyForm({
         rooms: property?.details.info.rooms ?? 1,
         bathrooms: property?.details.info.bathrooms ?? 0,
         guests: property?.details.info.guests ?? 1,
-        houseRules: property?.details.info.houseRules ?? "",
-        cancellationPolicy: property?.details.info.cancellationPolicy ?? "",
       },
       services: property?.details.services ?? [],
       gallery: property?.details.gallery ?? [],
       position: property?.details.position ?? {
         address: "",
-        city: "",
-        country: "",
         lat: undefined,
         lng: undefined,
       },
@@ -94,7 +90,6 @@ export default function PropertyForm({
         phone: "",
       },
       booking: {
-        icalUrl: property?.details.booking?.icalUrl ?? "",
         bookingUrl: property?.details.booking?.bookingUrl ?? "",
       },
       faqs: property?.details.faqs ?? [],
@@ -440,41 +435,6 @@ export default function PropertyForm({
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="info.houseRules"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Regole di casa</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      className="min-h-[100px]"
-                      placeholder="Regole di casa"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="info.cancellationPolicy"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Termini di cancellazione</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      className="min-h-[100px]"
-                      placeholder="Termini di cancellazione"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </TabsContent>
           <TabsContent value="services" className="space-y-8">
             <h2 className="text-2xl font-bold">Servizi</h2>
@@ -521,32 +481,6 @@ export default function PropertyForm({
                       {...field}
                       placeholder="Via dei Monti Tiburtini, 123"
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="position.city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Città</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Roma" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="position.country"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Paese</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Italia" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -687,26 +621,8 @@ export default function PropertyForm({
           <TabsContent value="booking" className="space-y-8">
             <h2 className="text-2xl font-bold">Prenotazioni</h2>
             <p className="text-sm text-muted-foreground">
-              Inserisci il link iCal in sola lettura per sincronizzare le
-              disponibilita. In alternativa puoi usare il link diretto al
-              portale di prenotazioni.
+              Inserisci il link diretto al portale di prenotazioni.
             </p>
-            <FormField
-              control={form.control}
-              name="booking.icalUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Link iCal (sola lettura)</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="https://.../calendar.ics"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="booking.bookingUrl"

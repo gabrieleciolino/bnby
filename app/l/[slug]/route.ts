@@ -3,7 +3,6 @@ import {
   defaultTemplateTheme,
 } from "@/components/property/template-html";
 import type { PropertyDetailsSchema } from "@/components/property/schema";
-import { extractUnavailableDatesFromIcal } from "@/lib/booking/ical";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -28,29 +27,8 @@ export async function GET(
   }
 
   const details = data.details as PropertyDetailsSchema;
-  const bookingIcalUrl = details.booking?.icalUrl?.trim();
-  const bookingAvailability = bookingIcalUrl
-    ? await (async () => {
-        try {
-          const response = await fetch(bookingIcalUrl, {
-            headers: { "User-Agent": "bnby-calendar" },
-            cache: "no-store",
-          });
-          if (!response.ok) {
-            return null;
-          }
-
-          const icalText = await response.text();
-          const unavailableDates = extractUnavailableDatesFromIcal(icalText);
-          return { unavailableDates };
-        } catch {
-          return null;
-        }
-      })()
-    : null;
-
   const template = data.template?.trim();
-  const htmlBase =
+  const html =
     template && template.length > 0
       ? template
       : buildPropertyLandingHtml({
@@ -67,20 +45,9 @@ export async function GET(
           booking: details.booking,
           faqs: details.faqs ?? [],
           landing: details.landing,
-          bookingAvailability,
           theme: defaultTemplateTheme,
           propertyId: data.id,
         });
-
-  const html =
-    template && template.length > 0 && bookingAvailability
-      ? htmlBase.replace(
-          /<script type="application\/json" id="booking-data">[\s\S]*?<\/script>/,
-          `<script type="application/json" id="booking-data">${JSON.stringify(
-            bookingAvailability
-          ).replace(/</g, "\\u003c")}</script>`
-        )
-      : htmlBase;
 
   return new Response(html, {
     headers: {

@@ -624,11 +624,6 @@ export const parseAirbnbHtml = (html: string): AirbnbParseResult => {
     info.bathrooms = counts.bathrooms;
   }
 
-  const cancellationPolicy = extractCancellationPolicy(stayProductDetailPage);
-  if (cancellationPolicy) {
-    info.cancellationPolicy = cancellationPolicy;
-  }
-
   if (Object.keys(info).length > 0) {
     values.info = info as PropertyFormValues["info"];
   }
