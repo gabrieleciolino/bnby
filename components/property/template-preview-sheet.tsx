@@ -218,7 +218,7 @@ export default function TemplatePreviewSheet({
   const isLocalDraft = isDirty;
   const hasValidSlug = Boolean(slug);
   const canTogglePublish = Boolean(propertyId) && hasValidSlug;
-  const previewPath = hasValidSlug ? `/p/${slug}.html` : null;
+  const previewPath = hasValidSlug ? `/p/${slug}` : null;
   const landingPath = hasValidSlug ? `/l/${slug}` : null;
   const templateLabel = !propertyId
     ? "Template non salvato"

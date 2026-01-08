@@ -16,6 +16,7 @@ export default async function PropertyPage({
 
   const property = await getPropertyQuery(propertyId);
   const propertyDetails = (property as PropertyWithDetails)?.details;
+
   const ownerEmail = propertyDetails?.contact?.email?.trim() ?? "";
   const hasOwner = Boolean((property as PropertyWithDetails)?.user_id);
   const hasSlug = Boolean(propertyDetails?.slug?.trim());

@@ -11,7 +11,6 @@ import {
   defaultTemplateTheme,
   extractTemplateTheme,
 } from "@/components/property/template-html";
-import { renderOwnerColdInviteEmail } from "@/lib/email/owner-cold-invite";
 import { adminActionClient, authActionClient } from "@/lib/actions/client";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/db/types";
@@ -693,7 +692,7 @@ export const sendOwnerColdEmailAction = adminActionClient
       throw new Error("Email proprietario non disponibile");
     }
 
-    const previewUrl = `${baseUrl.origin}/p/${slug}.html`;
+    const previewUrl = `${baseUrl.origin}/p/${slug}`;
     const resendApiKey = process.env.RESEND_API_KEY;
     const resendFrom = process.env.RESEND_MARKETING_FROM;
 
@@ -702,20 +701,22 @@ export const sendOwnerColdEmailAction = adminActionClient
     }
 
     const replyEmail = resolveSenderEmail(resendFrom);
-    const subject = `La tua anteprima per ${propertyName} e pronta`;
+    const subject = `Ti propongo un sito per il tuo BnB: ${propertyName}`;
     const textLines = [
       `Ciao,`,
       "",
-      `La landing di ${propertyName} e pronta.`,
-      `Anteprima: ${previewUrl}`,
+      `sono Gabriele, fondatore di bnby.me. Ti contatto perché vorrei proporti un sito per il tuo BnB: ${propertyName}`,
+      `Mi sono permesso di prepararti un'anteprima qui: ${previewUrl}`,
       "",
-      "Perche scegliere bnby:",
-      "- Un sito elegante pronto in pochi minuti",
-      "- Richieste e contatti organizzati in un unico pannello",
-      "- Calendario sincronizzato con Airbnb e Booking",
-      "- Personalizzazioni su misura per la tua struttura",
+      "Se ti piace, possiamo metterlo online in pochi minuti. Avrai a disposizione anche un pannello di controllo dove potrai personalizzare i colori e i dettagli.",
+      "Il costo del servizio è di 399€ per l'attivazione e copre il primo anno, dal secondo in poi ti costa 99€ all'anno per coprire i costi di mantenimento.",
+      "Per maggiori informazioni puoi rispondermi a questa email oppure prenotare subito una videochiamata per saperne di più.",
       "",
-      "Rispondi a questa email per attivare l'account e ricevere accesso.",
+      `Prenota call (disponibilità dalle ore 9 alle 18): ${process.env.CALENDLY_MEETING_EARLY_URL}`,
+      `Prenota call (disponibilità dalle ore 18 alle 21): ${process.env.CALENDLY_MEETING_LATE_URL}`,
+      "",
+      "Gabriele",
+      "fondatore di bnby.me",
     ];
 
     const resendResponse = await fetch("https://api.resend.com/emails", {
@@ -728,12 +729,6 @@ export const sendOwnerColdEmailAction = adminActionClient
         from: resendFrom,
         to: ownerEmail,
         subject,
-        html: renderOwnerColdInviteEmail({
-          baseUrl: baseUrl.origin,
-          propertyName,
-          previewUrl,
-          replyEmail,
-        }),
         text: textLines.join("\n"),
         reply_to: replyEmail || undefined,
       }),
