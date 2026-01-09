@@ -55,6 +55,15 @@ type PreviewImage = {
   revoke?: () => void;
 };
 
+type PreviewEditorialBlock = {
+  id?: string;
+  title: string;
+  body: string;
+  image?: string;
+  imageAlt?: string;
+  revoke?: () => void;
+};
+
 const buildPreviewImages = (
   gallery: PropertyFormValues["gallery"] | undefined
 ): PreviewImage[] => {
@@ -80,9 +89,45 @@ const buildPreviewImages = (
   return images;
 };
 
+const buildPreviewEditorialBlocks = (
+  blocks: PropertyFormValues["editorialBlocks"] | undefined
+): PreviewEditorialBlock[] => {
+  const previews: PreviewEditorialBlock[] = [];
+
+  (blocks ?? []).forEach((block) => {
+    if (!block) return;
+    const title = block.title?.trim() ?? "";
+    const body = block.body?.trim() ?? "";
+    if (!title || !body) return;
+
+    let image: string | undefined;
+    let revoke: (() => void) | undefined;
+    if (typeof block.image === "string") {
+      const trimmed = block.image.trim();
+      image = trimmed || undefined;
+    } else if (block.image instanceof File) {
+      const url = URL.createObjectURL(block.image);
+      image = url;
+      revoke = () => URL.revokeObjectURL(url);
+    }
+
+    previews.push({
+      id: block.id?.trim() || undefined,
+      title,
+      body,
+      image,
+      imageAlt: block.imageAlt?.trim() || undefined,
+      revoke,
+    });
+  });
+
+  return previews;
+};
+
 const sectionLabels: Record<BlockKey, string> = {
   hero: "Hero",
   description: "Descrizione",
+  editorial: "Editoriali",
   gallery: "Galleria",
   services: "Servizi",
   position: "Posizione",
@@ -128,6 +173,7 @@ export default function TemplatePreviewSheet({
   const position = watch("position");
   const contact = watch("contact");
   const booking = watch("booking");
+  const editorialBlocks = watch("editorialBlocks");
   const faqs = watch("faqs") ?? [];
   const landing = watch("landing");
   const landingCopy = landing?.copy;
@@ -147,6 +193,17 @@ export default function TemplatePreviewSheet({
     };
   }, [previewImages]);
 
+  const previewEditorialBlocks = useMemo(
+    () => buildPreviewEditorialBlocks(editorialBlocks),
+    [editorialBlocks]
+  );
+
+  useEffect(() => {
+    return () => {
+      previewEditorialBlocks.forEach((block) => block.revoke?.());
+    };
+  }, [previewEditorialBlocks]);
+
   const galleryItems = useMemo(
     () =>
       previewImages.map((image, index) => ({
@@ -154,6 +211,14 @@ export default function TemplatePreviewSheet({
         alt: image.name || `image-${index + 1}`,
       })),
     [previewImages]
+  );
+
+  const editorialBlocksForTemplate = useMemo(
+    () =>
+      previewEditorialBlocks.map(({ revoke, ...block }) => ({
+        ...block,
+      })),
+    [previewEditorialBlocks]
   );
 
   const defaultTemplateHtml = useMemo(
@@ -165,6 +230,7 @@ export default function TemplatePreviewSheet({
         position,
         contact,
         booking,
+        editorialBlocks: editorialBlocksForTemplate,
         faqs,
         landing,
         theme: defaultTemplateTheme,
@@ -177,6 +243,7 @@ export default function TemplatePreviewSheet({
       position,
       contact,
       booking,
+      editorialBlocksForTemplate,
       faqs,
       landing,
     ]
@@ -191,6 +258,7 @@ export default function TemplatePreviewSheet({
         position,
         contact,
         booking,
+        editorialBlocks: editorialBlocksForTemplate,
         faqs,
         landing,
         theme,
@@ -203,6 +271,7 @@ export default function TemplatePreviewSheet({
       position,
       contact,
       booking,
+      editorialBlocksForTemplate,
       faqs,
       landing,
       theme,
@@ -277,6 +346,7 @@ export default function TemplatePreviewSheet({
       position,
       contact,
       booking,
+      editorialBlocks: editorialBlocksForTemplate,
       faqs,
       landing,
       theme: next,
@@ -301,6 +371,7 @@ export default function TemplatePreviewSheet({
       position,
       contact,
       booking,
+      editorialBlocks: editorialBlocksForTemplate,
       faqs,
       landing: nextLanding,
       theme,
@@ -330,6 +401,7 @@ export default function TemplatePreviewSheet({
       position,
       contact,
       booking,
+      editorialBlocks: editorialBlocksForTemplate,
       faqs,
       landing: nextLanding,
       theme,

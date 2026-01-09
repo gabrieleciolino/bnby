@@ -15,6 +15,7 @@ import { adminActionClient, authActionClient } from "@/lib/actions/client";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/db/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { randomUUID } from "crypto";
 import { z } from "zod";
 
 const SUPABASE_PUBLIC_URL =
@@ -183,7 +184,7 @@ const processGalleryItems = async ({
   propertyId: string;
   galleryItems?: PropertySchema["gallery"];
 }): Promise<string[]> => {
-  const items = galleryItems ?? [];
+  const items = (galleryItems ?? []).slice(0, 20);
   const existingSupabaseUrls = items.filter(
     (item): item is string =>
       typeof item === "string" && isSupabaseStorageUrl(item)
@@ -253,6 +254,89 @@ const processGalleryItems = async ({
   return uploadedImages;
 };
 
+const uploadEditorialImage = async ({
+  supabase,
+  propertyId,
+  body,
+  contentType,
+  extension,
+}: {
+  supabase: SupabaseClient<Database>;
+  propertyId: string;
+  body: ArrayBuffer | File;
+  contentType?: string | null;
+  extension: string;
+}): Promise<string> => {
+  const key = `editorial/${propertyId}/${randomUUID()}.${extension}`;
+  const options = contentType ? { contentType } : undefined;
+
+  const { error: uploadError } = await supabase.storage
+    .from("properties")
+    .upload(key, body, options);
+
+  if (uploadError) {
+    throw new Error(uploadError.message);
+  }
+
+  const { data: publicUrlData } = await supabase.storage
+    .from("properties")
+    .getPublicUrl(key);
+
+  if (!publicUrlData?.publicUrl) {
+    throw new Error("Impossibile ottenere l'URL pubblico dell'immagine");
+  }
+
+  return publicUrlData.publicUrl;
+};
+
+const processEditorialBlocks = async ({
+  supabase,
+  propertyId,
+  blocks,
+}: {
+  supabase: SupabaseClient<Database>;
+  propertyId: string;
+  blocks?: PropertySchema["editorialBlocks"];
+}): Promise<PropertyDetailsSchema["editorialBlocks"]> => {
+  const items = blocks ?? [];
+  const processed = [];
+
+  for (const block of items) {
+    if (!block) continue;
+    const title = block.title?.trim() ?? "";
+    const body = block.body?.trim() ?? "";
+    if (!title || !body) {
+      continue;
+    }
+    let imageUrl =
+      typeof block.image === "string" ? block.image.trim() : "";
+    if (block.image instanceof File) {
+      const contentType = block.image.type || null;
+      const extension = resolveImageExtension({
+        fileName: block.image.name,
+        contentType,
+      });
+      const body = await block.image.arrayBuffer();
+      imageUrl = await uploadEditorialImage({
+        supabase,
+        propertyId,
+        body,
+        contentType,
+        extension,
+      });
+    }
+    processed.push({
+      id: block.id?.trim() || undefined,
+      title,
+      body,
+      image: imageUrl || undefined,
+      imageAlt: block.imageAlt?.trim() || undefined,
+    });
+  }
+
+  return processed;
+};
+
 const toTemplateGalleryItems = (gallery?: PropertyDetailsSchema["gallery"]) =>
   (gallery ?? [])
     .filter((item): item is string => typeof item === "string")
@@ -276,6 +360,7 @@ const buildTemplateFromDetails = (
     position: details.position,
     contact: details.contact,
     booking: details.booking,
+    editorialBlocks: details.editorialBlocks,
     faqs: details.faqs ?? [],
     landing: details.landing,
     theme: resolveTemplateTheme(template),
@@ -298,6 +383,7 @@ export const addPropertyAction = authActionClient
       position,
       contact,
       booking,
+      editorialBlocks,
       gallery,
       faqs,
       landing,
@@ -318,6 +404,7 @@ export const addPropertyAction = authActionClient
       position,
       contact,
       booking,
+      editorialBlocks: [],
       faqs,
       landing,
       gallery: [],
@@ -344,9 +431,15 @@ export const addPropertyAction = authActionClient
       propertyId: data.id,
       galleryItems: gallery,
     });
+    const processedEditorialBlocks = await processEditorialBlocks({
+      supabase: gallerySupabase,
+      propertyId: data.id,
+      blocks: editorialBlocks,
+    });
     const nextDetails: PropertyDetailsDb = {
       ...details,
       gallery: uploadedImages,
+      editorialBlocks: processedEditorialBlocks,
     };
     const nextTemplate = buildTemplateFromDetails(
       nextDetails,
@@ -398,11 +491,17 @@ export const editPropertyAction = authActionClient
       propertyId: id,
       galleryItems: data.gallery,
     });
+    const processedEditorialBlocks = await processEditorialBlocks({
+      supabase: gallerySupabase,
+      propertyId: id,
+      blocks: data.editorialBlocks,
+    });
     const themeTemplate =
       template?.trim() || propertyData?.template?.trim() || null;
     const nextDetails: PropertyDetailsDb = {
       ...data,
       gallery: uploadedImages,
+      editorialBlocks: processedEditorialBlocks,
     } as PropertyDetailsDb;
     const nextTemplate = buildTemplateFromDetails(
       nextDetails,
@@ -638,6 +737,86 @@ export const savePropertyTemplateAction = authActionClient
 
     return {
       template: normalizedTemplate ?? "",
+    };
+  });
+
+export const deleteGalleryImageAction = authActionClient
+  .inputSchema(
+    z.object({
+      propertyId: z.string().uuid(),
+      imageUrl: z.string().url(),
+    })
+  )
+  .action(async ({ ctx, parsedInput }) => {
+    const { supabase, user, account } = ctx;
+    const { propertyId, imageUrl } = parsedInput;
+
+    const { data: propertyData, error: propertyError } = await supabase
+      .from("property")
+      .select("id,user_id,details,template")
+      .eq("id", propertyId)
+      .single();
+
+    if (propertyError || !propertyData) {
+      throw new Error(propertyError?.message ?? "Proprieta non trovata");
+    }
+
+    if (!account?.is_admin && propertyData.user_id !== user.sub) {
+      throw new Error("Unauthorized");
+    }
+
+    const details = propertyData.details as PropertyDetailsSchema;
+    const nextGallery = (details.gallery ?? []).filter(
+      (url) => url !== imageUrl
+    );
+    const storagePath = getStoragePathFromUrl(imageUrl);
+
+    if (storagePath) {
+      const { error: storageError } = await supabase.storage
+        .from("properties")
+        .remove([storagePath]);
+
+      if (storageError) {
+        throw new Error(storageError.message);
+      }
+
+      const { error: deleteError } = await supabase
+        .from("gallery")
+        .delete()
+        .eq("property_id", propertyId)
+        .eq("key", storagePath);
+
+      if (deleteError) {
+        throw new Error(deleteError.message);
+      }
+    }
+
+    const nextDetails: PropertyDetailsDb = {
+      ...details,
+      gallery: nextGallery,
+    } as PropertyDetailsDb;
+    const nextTemplate = buildTemplateFromDetails(
+      nextDetails,
+      propertyData.template,
+      propertyId
+    );
+
+    const { error: updateError } = await supabase
+      .from("property")
+      .update({
+        details:
+          nextDetails as Database["public"]["Tables"]["property"]["Row"]["details"],
+        template: nextTemplate,
+      })
+      .eq("id", propertyId);
+
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
+
+    return {
+      gallery: nextGallery,
+      template: nextTemplate,
     };
   });
 

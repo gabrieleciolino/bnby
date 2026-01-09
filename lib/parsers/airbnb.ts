@@ -466,27 +466,13 @@ const extractLocation = (
     asString(section.address) ||
     asString(section.addressTitle) ||
     asString(section.subtitle);
-  const subtitle = asString(section.subtitle);
 
-  if (!address || !subtitle) {
-    return undefined;
-  }
-
-  const parts = subtitle
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
-  const city = parts[0];
-  const country = parts[parts.length - 1];
-
-  if (!city || !country) {
+  if (!address) {
     return undefined;
   }
 
   return {
     address,
-    city,
-    country,
   };
 };
 

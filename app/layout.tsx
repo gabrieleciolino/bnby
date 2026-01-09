@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
-import { Manrope, Unbounded } from "next/font/google";
+import {
+  DM_Sans,
+  Manrope,
+  Playfair_Display,
+  Unbounded,
+} from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
-const manrope = Manrope({
+const dmSans = DM_Sans({
   variable: "--font-body",
   subsets: ["latin"],
 });
 
-const unbounded = Unbounded({
+const playfairDisplay = Playfair_Display({
   variable: "--font-display",
   subsets: ["latin"],
 });
@@ -27,7 +32,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it">
-      <body className={`${manrope.variable} ${unbounded.variable} antialiased`}>
+      <body
+        className={`${dmSans.variable} ${playfairDisplay.variable} antialiased`}
+      >
         <NuqsAdapter>
           {children}
           <Toaster />

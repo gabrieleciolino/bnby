@@ -43,6 +43,7 @@ export async function GET(
           position: details.position,
           contact: details.contact,
           booking: details.booking,
+          editorialBlocks: details.editorialBlocks,
           faqs: details.faqs ?? [],
           landing: details.landing,
           theme: defaultTemplateTheme,

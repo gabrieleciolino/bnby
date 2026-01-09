@@ -3,6 +3,7 @@ import { z } from "zod";
 export const blockKeys = [
   "hero",
   "description",
+  "editorial",
   "gallery",
   "services",
   "position",
@@ -26,6 +27,11 @@ export type GalleryCopy = {
   title?: string;
   subtitle?: string;
   buttonLabel?: string;
+};
+
+export type EditorialCopy = {
+  title?: string;
+  subtitle?: string;
 };
 
 export type ServicesCopy = {
@@ -64,6 +70,7 @@ export type FooterCopy = {
 
 export type LandingCopy = {
   hero?: HeroCopy;
+  editorial?: EditorialCopy;
   gallery?: GalleryCopy;
   services?: ServicesCopy;
   position?: PositionCopy;
@@ -79,6 +86,7 @@ export type LandingLayout = {
 
 export type ResolvedLandingCopy = {
   hero: HeroCopy;
+  editorial: EditorialCopy;
   gallery: GalleryCopy;
   services: ServicesCopy;
   position: PositionCopy;
@@ -95,6 +103,7 @@ export type ResolvedLandingLayout = {
 export const defaultBlockOrder: BlockKey[] = [
   "hero",
   "description",
+  "editorial",
   "gallery",
   "services",
   "position",
@@ -105,6 +114,7 @@ export const defaultBlockOrder: BlockKey[] = [
 
 const createEmptyLandingCopy = (): ResolvedLandingCopy => ({
   hero: {},
+  editorial: {},
   gallery: {},
   services: {},
   position: {},
@@ -141,6 +151,11 @@ const galleryCopySchema = z.object({
   title: z.string().optional(),
   subtitle: z.string().optional(),
   buttonLabel: z.string().optional(),
+});
+
+const editorialCopySchema = z.object({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
 });
 
 const servicesCopySchema = z.object({
@@ -187,6 +202,7 @@ export const landingSchema = z
     copy: z
       .object({
         hero: heroCopySchema.optional(),
+        editorial: editorialCopySchema.optional(),
         gallery: galleryCopySchema.optional(),
         services: servicesCopySchema.optional(),
         position: positionCopySchema.optional(),
@@ -225,6 +241,11 @@ const sanitizeGalleryCopy = (copy?: GalleryCopy): GalleryCopy => ({
   title: normalizeCopyValue(copy?.title),
   subtitle: normalizeCopyValue(copy?.subtitle),
   buttonLabel: normalizeCopyValue(copy?.buttonLabel),
+});
+
+const sanitizeEditorialCopy = (copy?: EditorialCopy): EditorialCopy => ({
+  title: normalizeCopyValue(copy?.title),
+  subtitle: normalizeCopyValue(copy?.subtitle),
 });
 
 const sanitizeServicesCopy = (copy?: ServicesCopy): ServicesCopy => ({
@@ -290,6 +311,7 @@ export const resolveLandingConfig = (
   return {
     copy: {
       hero: sanitizeHeroCopy(copyInput.hero),
+      editorial: sanitizeEditorialCopy(copyInput.editorial),
       gallery: sanitizeGalleryCopy(copyInput.gallery),
       services: sanitizeServicesCopy(copyInput.services),
       position: sanitizePositionCopy(copyInput.position),

@@ -49,15 +49,24 @@ export async function GET(
           position: details.position,
           contact: details.contact,
           booking: details.booking,
+          editorialBlocks: details.editorialBlocks,
           faqs: details.faqs ?? [],
           landing: details.landing,
           theme: defaultTemplateTheme,
           propertyId: data.id,
         });
 
-  return new Response(html, {
+  const htmlWithRobots = html.includes('name="robots"')
+    ? html
+    : html.replace(
+        "</head>",
+        '<meta name="robots" content="noindex, nofollow, noarchive" /></head>'
+      );
+
+  return new Response(htmlWithRobots, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
+      "X-Robots-Tag": "noindex, nofollow, noarchive",
     },
   });
 }

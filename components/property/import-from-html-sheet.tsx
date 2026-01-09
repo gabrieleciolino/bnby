@@ -54,7 +54,12 @@ export default function ImportFromHtmlSheet() {
     if (!value || value.length === 0) {
       return;
     }
-    form.setValue(path, value as never, {
+    const nextValue =
+      path === "gallery" ? value.slice(0, 20) : value;
+    if (path === "gallery" && value.length > 20) {
+      toast.info("Importate solo le prime 20 immagini");
+    }
+    form.setValue(path, nextValue as never, {
       shouldDirty: true,
       shouldValidate: true,
     });

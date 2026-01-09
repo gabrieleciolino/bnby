@@ -2,8 +2,22 @@ import { getPropertiesQuery } from "@/components/property/queries";
 import { landingSchema } from "@/components/property/landing-config";
 import { z } from "zod";
 
-const gallerySchema = z.array(z.union([z.instanceof(File), z.string()]));
+const gallerySchema = z
+  .array(z.union([z.instanceof(File), z.string()]))
+  .max(20, "Massimo 20 immagini");
 const optionalUrlSchema = z.string().trim().url().optional().or(z.literal(""));
+const editorialImageSchema = z.union([
+  z.instanceof(File),
+  z.string().trim().url(),
+  z.literal(""),
+]);
+const editorialBlockSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1),
+  body: z.string().min(1),
+  image: editorialImageSchema.optional(),
+  imageAlt: z.string().optional(),
+});
 
 export const propertySchema = z.object({
   id: z.string().optional(),
@@ -36,6 +50,7 @@ export const propertySchema = z.object({
       bookingUrl: optionalUrlSchema,
     })
     .optional(),
+  editorialBlocks: z.array(editorialBlockSchema).optional(),
   faqs: z
     .array(
       z.object({
@@ -49,7 +64,21 @@ export const propertySchema = z.object({
 });
 
 export type PropertySchema = z.infer<typeof propertySchema>;
-export type PropertyDetailsSchema = Omit<PropertySchema, "template">;
+export type PropertyDetailsEditorialBlock = {
+  id?: string;
+  title: string;
+  body: string;
+  image?: string;
+  imageAlt?: string;
+};
+
+export type PropertyDetailsSchema = Omit<
+  PropertySchema,
+  "template" | "gallery" | "editorialBlocks"
+> & {
+  gallery?: string[];
+  editorialBlocks?: PropertyDetailsEditorialBlock[];
+};
 export type PropertyFormValues = z.input<typeof propertySchema>;
 
 export type Property = NonNullable<

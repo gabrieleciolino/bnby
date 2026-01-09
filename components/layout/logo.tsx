@@ -6,7 +6,13 @@ import Image from "next/image";
 export default function Logo({ href }: { href?: string }) {
   return (
     <Link href={href ?? urls.root}>
-      <Image src="/logo.png" alt="" width={120} height={120} />
+      <Image
+        src="/logo.png"
+        alt=""
+        width={120}
+        height={120}
+        className="w-[100px] md:w-auto"
+      />
     </Link>
   );
 }

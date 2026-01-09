@@ -10,17 +10,15 @@ export default async function AuthenticatedHeader() {
   const user = await getUserQuery();
 
   return (
-    <header>
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="main-container">
-        <div className="m-1 bg-card rounded-lg p-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <Logo href={urls.dashboard.index} />
-            <div className="flex items-center">
-              <Button variant="ghost" size="icon">
-                <Bell className="size-5" />
-              </Button>
-              <LogoutBtn />
-            </div>
+        <div className="flex items-center justify-between">
+          <Logo href={urls.root} />
+          <div className="flex items-center">
+            <Button variant="ghost" size="icon">
+              <Bell className="size-5" />
+            </Button>
+            <LogoutBtn />
           </div>
         </div>
       </div>

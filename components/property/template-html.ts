@@ -274,6 +274,13 @@ type GalleryItem = {
   alt: string;
 };
 
+type EditorialBlock = {
+  title: string;
+  body: string;
+  image?: string;
+  imageAlt?: string;
+};
+
 type TemplateInput = {
   propertyId?: string;
   info?: PropertyFormValues["info"];
@@ -282,6 +289,7 @@ type TemplateInput = {
   position?: PropertyFormValues["position"];
   contact?: PropertyFormValues["contact"];
   booking?: PropertyFormValues["booking"];
+  editorialBlocks?: EditorialBlock[];
   faqs?: PropertyFormValues["faqs"];
   landingCopy?: LandingCopy;
   landing?: PropertyFormValues["landing"];
@@ -479,6 +487,7 @@ export const buildPropertyLandingHtml = ({
   position,
   contact,
   booking,
+  editorialBlocks,
   faqs,
   landingCopy: landingCopyInput,
   landing,
@@ -598,6 +607,10 @@ export const buildPropertyLandingHtml = ({
     }
     ${heroActionsHtml}
   `;
+
+  const editorialTitle =
+    normalizeCopy(landingCopy?.editorial?.title) ?? "Approfondimenti";
+  const editorialSubtitle = normalizeCopy(landingCopy?.editorial?.subtitle);
 
   const galleryTitle = normalizeCopy(landingCopy?.gallery?.title) ?? "Galleria";
   const gallerySubtitle = normalizeCopy(landingCopy?.gallery?.subtitle);
@@ -822,6 +835,54 @@ export const buildPropertyLandingHtml = ({
     </section>
   `;
 
+  const editorialItems = (editorialBlocks ?? [])
+    .map((block) => ({
+      title: block.title?.trim() ?? "",
+      body: block.body?.trim() ?? "",
+      image: block.image?.trim() ?? "",
+      imageAlt: block.imageAlt?.trim() ?? "",
+    }))
+    .filter((block) => block.title && block.body);
+  const editorialBlocksHtml =
+    editorialItems.length > 0
+      ? editorialItems
+          .map(
+            (block, index) => `
+              <article class="editorial-card" data-reveal style="--reveal-delay:${
+                index * 40
+              }ms">
+                ${
+                  block.image
+                    ? `<div class="editorial-media">
+                  <img src="${escapeHtml(block.image)}" alt="${escapeHtml(
+                      block.imageAlt || block.title
+                    )}" loading="lazy" />
+                </div>`
+                    : ""
+                }
+                <div class="editorial-content">
+                  <h3>${escapeHtml(block.title)}</h3>
+                  <p>${formatText(block.body)}</p>
+                </div>
+              </article>`
+          )
+          .join("")
+      : "";
+  const editorialSectionHtml =
+    editorialItems.length > 0
+      ? `
+    <section id="editorial">
+      <div class="section-header" data-reveal>
+        <h2>${escapeHtml(editorialTitle)}</h2>
+        ${editorialSubtitle ? `<p>${escapeHtml(editorialSubtitle)}</p>` : ""}
+      </div>
+      <div class="editorial-list">
+        ${editorialBlocksHtml}
+      </div>
+    </section>
+  `
+      : "";
+
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
   const turnstileScript = turnstileSiteKey
     ? `<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>`
@@ -1021,6 +1082,7 @@ export const buildPropertyLandingHtml = ({
   const sectionsByKey: Record<BlockKey, string> = {
     hero: heroHtml,
     description: descriptionSectionHtml,
+    editorial: editorialSectionHtml,
     gallery: gallerySectionHtml,
     services: servicesSectionHtml,
     position: positionSectionHtml,
@@ -1102,6 +1164,22 @@ export const buildPropertyLandingHtml = ({
         background: var(--bg);
         line-height: 1.6;
         scroll-behavior: smooth;
+      }
+
+      .preview-banner {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: center;
+        background: var(--card);
+        color: var(--ink);
+        border-bottom: 1px solid var(--line);
       }
 
       img {
@@ -1273,6 +1351,54 @@ export const buildPropertyLandingHtml = ({
       .section-empty {
         color: var(--muted);
         font-size: 0.95rem;
+      }
+
+      .editorial-list {
+        display: grid;
+        gap: 18px;
+      }
+
+      .editorial-card {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+        align-items: center;
+        background: var(--card);
+        border-radius: var(--radius-md);
+        padding: 18px;
+        box-shadow: var(--shadow-soft);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .editorial-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .editorial-media {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        border-radius: 16px;
+        overflow: hidden;
+        background: color-mix(in srgb, var(--card) 70%, var(--bg));
+      }
+
+      .editorial-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .editorial-content h3 {
+        margin: 0 0 8px;
+        font-family: var(--font-heading);
+        font-size: 1.2rem;
+      }
+
+      .editorial-content p {
+        margin: 0;
+        color: var(--muted);
       }
 
       .services-grid {
@@ -1550,6 +1676,10 @@ export const buildPropertyLandingHtml = ({
 
         .gallery-grid--masonry {
           column-count: 2;
+        }
+
+        .editorial-card {
+          grid-template-columns: 1fr;
         }
 
         .gallery-modal-content {
@@ -1942,6 +2072,9 @@ export const buildPropertyLandingHtml = ({
     </style>
   </head>
   <body>
+    <div class="preview-banner" role="status">
+      Questa è un'anteprima della landing: testi e dettagli possono cambiare.
+    </div>
     ${orderedSectionsHtml}
     ${galleryModalHtml}
 

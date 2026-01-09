@@ -8,16 +8,18 @@ export default function ProtectedWrapper({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="main-container">
-      <div className="bg-card rounded-lg p-4 shadow-lg">
-        {title && (
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold">{title}</h1>
-            {actions}
-          </div>
-        )}
+    <div className="bg-white">
+      <div className="main-container">
+        <div className="my-8">
+          {title && (
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-3xl md:text-4xl font-bold">{title}</h1>
+              {actions}
+            </div>
+          )}
 
-        {children}
+          {children}
+        </div>
       </div>
     </div>
   );
