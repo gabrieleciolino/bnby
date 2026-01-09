@@ -108,7 +108,8 @@ export async function POST(request: Request) {
   }
 
   const resendApiKey = process.env.RESEND_API_KEY;
-  const resendFrom = process.env.RESEND_FROM;
+  const resendFrom =
+    process.env.RESEND_FROM ?? process.env.RESEND_INFO_FROM;
 
   if (!resendApiKey || !resendFrom) {
     return jsonResponse(

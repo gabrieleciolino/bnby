@@ -245,9 +245,9 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900 dark:text-white">
+                  <span className="font-bold text-gray-900 dark:text-white">
                     Marco Pingitore
-                  </h4>
+                  </span>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Villa Aurora, Toscana
                   </p>
@@ -275,9 +275,9 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900 dark:text-white">
+                  <span className="font-bold text-gray-900 dark:text-white">
                     Elia Scanzi
-                  </h4>
+                  </span>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     B&amp;B La Lanterna, Genova
                   </p>
@@ -305,9 +305,9 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900 dark:text-white">
+                  <span className="font-bold text-gray-900 dark:text-white">
                     Elena Rametti
-                  </h4>
+                  </span>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Sweet Home, Roma
                   </p>

@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export default function Logo({ href }: { href?: string }) {
   return (
-    <Link href={href ?? urls.root}>
+    <Link href={href ?? urls.root} aria-label="Torna alla home page">
       <Image
         src="/logo.png"
         alt=""
