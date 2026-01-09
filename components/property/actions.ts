@@ -308,8 +308,7 @@ const processEditorialBlocks = async ({
     if (!title || !body) {
       continue;
     }
-    let imageUrl =
-      typeof block.image === "string" ? block.image.trim() : "";
+    let imageUrl = typeof block.image === "string" ? block.image.trim() : "";
     if (block.image instanceof File) {
       const contentType = block.image.type || null;
       const extension = resolveImageExtension({
@@ -872,7 +871,7 @@ export const sendOwnerColdEmailAction = adminActionClient
 
     const previewUrl = `${baseUrl.origin}/p/${slug}`;
     const resendApiKey = process.env.RESEND_API_KEY;
-    const resendFrom = process.env.RESEND_MARKETING_FROM;
+    const resendFrom = process.env.NEXT_PUBLIC_RESEND_MARKETING_FROM;
 
     if (!resendApiKey || !resendFrom) {
       throw new Error("Configurazione email mancante");

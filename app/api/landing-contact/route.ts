@@ -49,9 +49,9 @@ const verifyTurnstile = async (
       body: params.toString(),
     }
   );
-  const data = (await response.json().catch(() => null)) as
-    | { success?: boolean }
-    | null;
+  const data = (await response.json().catch(() => null)) as {
+    success?: boolean;
+  } | null;
   return Boolean(data?.success);
 };
 
@@ -92,10 +92,7 @@ export async function POST(request: Request) {
 
   if (turnstileToken) {
     if (!turnstileSecret) {
-      return jsonResponse(
-        { error: "Configurazione anti-spam mancante" },
-        500
-      );
+      return jsonResponse({ error: "Configurazione anti-spam mancante" }, 500);
     }
     const ok = await verifyTurnstile(
       turnstileToken,
@@ -109,13 +106,10 @@ export async function POST(request: Request) {
 
   const resendApiKey = process.env.RESEND_API_KEY;
   const resendFrom =
-    process.env.RESEND_FROM ?? process.env.RESEND_INFO_FROM;
+    process.env.RESEND_FROM ?? process.env.NEXT_PUBLIC_RESEND_INFO_FROM;
 
   if (!resendApiKey || !resendFrom) {
-    return jsonResponse(
-      { error: "Configurazione email mancante" },
-      500
-    );
+    return jsonResponse({ error: "Configurazione email mancante" }, 500);
   }
 
   const messageLines = [

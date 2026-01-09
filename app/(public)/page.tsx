@@ -401,6 +401,24 @@ export default function Home() {
                 rinnovare. Alla scadenza, la pagina viene disattivata.
               </div>
             </details>
+            <details className="group bg-white dark:bg-surface-dark rounded-2xl border border-gray-100 dark:border-gray-800 shadow-card">
+              <summary className="flex justify-between items-center p-6 cursor-pointer list-none">
+                <span className="font-bold text-gray-900 dark:text-white text-lg">
+                  Cosa non è incluso?
+                </span>
+                <span className="faq-icon material-icons-round text-gray-400 transition-transform duration-300">
+                  <ChevronDown />
+                </span>
+              </summary>
+              <div className="px-6 pb-6 text-gray-600 dark:text-gray-400 leading-relaxed">
+                Non vengono gestite le prenotazioni dirette. Puoi includere un
+                link diretto al tuo annuncio su AirBnB o altri siti. Non
+                facciamo campagne ads o SEO per portarti traffico (possiamo
+                farlo con una consulenza personalizzata). Non includiamo
+                supporto continuo: la pagina si modifica dal pannello.
+                L'assistenza è solo su richiesta.
+              </div>
+            </details>
           </div>
         </div>
       </section>

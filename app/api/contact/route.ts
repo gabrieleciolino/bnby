@@ -54,9 +54,9 @@ const verifyTurnstile = async (
       body: params.toString(),
     }
   );
-  const data = (await response.json().catch(() => null)) as
-    | { success?: boolean }
-    | null;
+  const data = (await response.json().catch(() => null)) as {
+    success?: boolean;
+  } | null;
   return Boolean(data?.success);
 };
 
@@ -97,10 +97,7 @@ export async function POST(request: Request) {
 
   if (turnstileToken) {
     if (!turnstileSecret) {
-      return jsonResponse(
-        { error: "Configurazione anti-spam mancante" },
-        500
-      );
+      return jsonResponse({ error: "Configurazione anti-spam mancante" }, 500);
     }
     const ok = await verifyTurnstile(
       turnstileToken,
@@ -180,14 +177,13 @@ export async function POST(request: Request) {
   }
 
   const resendApiKey = process.env.RESEND_API_KEY;
-  const resendFrom = process.env.RESEND_INFO_FROM;
+  const resendFrom = process.env.NEXT_PUBLIC_RESEND_INFO_FROM;
 
   if (!resendApiKey || !resendFrom) {
     return jsonResponse({ error: "Configurazione email mancante" }, 500);
   }
 
   const baseUrl = new URL(request.url).origin;
-  const contactLink = `${baseUrl}/dashboard/property/${payload.propertyId}/contacts`;
   const messageLines = [
     `Nuovo contatto per ${propertyName}`,
     "",
@@ -216,7 +212,7 @@ export async function POST(request: Request) {
         contactEmail: emailValue || null,
         contactPhone: phoneValue || null,
         message: payload.message.trim(),
-        contactLink,
+        contactLink: null,
       }),
       text: messageLines.join("\n"),
       reply_to: emailValue || undefined,
@@ -229,25 +225,6 @@ export async function POST(request: Request) {
       { error: errorText || "Invio email non riuscito" },
       500
     );
-  }
-
-  if (ownerUserId) {
-    const { error: notificationError } = await supabaseAdmin
-      .from("notification")
-      .insert({
-        user_id: ownerUserId,
-        message: `Nuovo contatto da ${payload.name.trim()}`,
-        link: `/dashboard/property/${payload.propertyId}/contacts`,
-      });
-
-    if (notificationError) {
-      return jsonResponse(
-        {
-          error: notificationError.message || "Impossibile creare la notifica",
-        },
-        500
-      );
-    }
   }
 
   return jsonResponse(
