@@ -10,6 +10,7 @@ import {
   Check,
   Star,
 } from "lucide-react";
+import Image from "next/image";
 
 import { LandingContactForm } from "@/components/landing/landing-contact-form";
 import CustomIcon from "@/components/common/custom-icon";
@@ -17,7 +18,7 @@ import CustomIcon from "@/components/common/custom-icon";
 export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <section className="relative overflow-hidden pt-8 pb-20 lg:pt-16 lg:pb-28">
+      <section className="relative min-h-[820px] overflow-hidden pt-8 pb-20 md:min-h-[720px] lg:min-h-[640px] lg:pt-16 lg:pb-28">
         <div className="absolute inset-0 bg-grid opacity-40" />
         <div className="absolute -top-20 right-0 size-72 rounded-full bg-primary/20 blur-3xl" />
         <div className="absolute bottom-0 left-0 size-64 rounded-full bg-secondary/20 blur-3xl" />
@@ -238,10 +239,14 @@ export default function Home() {
               </p>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-                  <img
+                  <Image
                     alt="Marco Rossi"
                     className="w-full h-full object-cover"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuBG7Ri4gBL0WPGIHvbgapPUX7injjkYJ9y3_nkQPr6NLXrA0H_DGFySTWinGSPtYs7XfUzYZXkrn4BzJ71Sa-cD_voUTGZ55gGM-cOfJ9wyyDB3o1-K8whR_N4GywgPXBd8zhJPD_Z-m0hZpmVreKaB1iCJE6Lyt1We0IbWmXAqXaa0-nWEyV_Bn0P_Z9PIweJWBTwJLQDNGA7EOr9C1gQ6FtgWMTS7_xPQGGyWIdI9zPQuEF_NNAmY9DN8MG7FzQhHM0m6c-kDCinv"
+                    width={48}
+                    height={48}
+                    sizes="48px"
+                    quality={70}
                   />
                 </div>
                 <div>
@@ -268,10 +273,14 @@ export default function Home() {
               </p>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-                  <img
+                  <Image
                     alt="Luca Bianchi"
                     className="w-full h-full object-cover"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGHvIGNgY-W5kUMdoon1AAqXFJm_v-MB5A6SewE818ZYcSINyO7xX4yQ5Tj3uKzI6l5_s6YfToMY8nmTBOX64_U4lLn_3ewg7JVJ9Wa0hGq0aaWkezXHRGYmYXw9hMKKOwjEwT6pULw911tYnUNLEWwYOM8dbBTLyPar6Fr7l6jPFBBsxzCyI5sMZtyzanmigN9EjlzUVBZEKrf32zh5JcloHKjvLtmaoQAgXBoq7QhaEULL_16tvjYNSOu1OPP-tDo4joS3-FvcAT"
+                    width={48}
+                    height={48}
+                    sizes="48px"
+                    quality={70}
                   />
                 </div>
                 <div>
@@ -298,10 +307,14 @@ export default function Home() {
               </p>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-                  <img
+                  <Image
                     alt="Elena Verdi"
                     className="w-full h-full object-cover"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuCc3NsJ7p3Lt5B4HGUwdHzXnIWqr92BPrvQlWjRnhOAilLNOLNx2jTaJdTEosQe68PG07MkXalAoXplG6pLE--LWFfNca9wG9vM2yzokSEy3bStp9C3pF5OhIx89hh8SuxRsiscKl0Oah1Xb5CRPiSODqI62FELbAQ_ypR11_spFsV_wDhUEcJMeRlKfL2oA6kzq0IzXmn8lNNoDpFN4-mPIjwGZMhELPK73YKdkInAdQedO4wK_ByydRHLXexrdh-Ds_8NyIB1Gjwx"
+                    width={48}
+                    height={48}
+                    sizes="48px"
+                    quality={70}
                   />
                 </div>
                 <div>
@@ -395,7 +408,7 @@ export default function Home() {
       <section id="demo" className="py-20">
         <div className="main-container">
           <div className="relative overflow-hidden rounded-[32px] bg-[linear-gradient(135deg,#E2655E_0%,#5EADC6_100%)] px-6 py-12 text-white md:px-12 lg:px-16">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay pointer-events-none" />
+            <div className="absolute inset-0 bg-cubes opacity-10 mix-blend-overlay pointer-events-none" />
             <div className="relative z-10 grid gap-10 lg:grid-cols-2 lg:items-center">
               <div className="space-y-6">
                 <h2 className="text-3xl font-display font-bold md:text-4xl">

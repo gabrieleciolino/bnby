@@ -11,6 +11,9 @@ export default function Logo({ href }: { href?: string }) {
         alt=""
         width={120}
         height={120}
+        priority
+        fetchPriority="high"
+        sizes="(max-width: 768px) 100px, 120px"
         className="w-[100px] md:w-auto"
       />
     </Link>
