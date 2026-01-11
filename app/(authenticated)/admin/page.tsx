@@ -18,7 +18,7 @@ export default async function AdminPage() {
         </Button>
       }
     >
-      <PropertiesList properties={properties as PropertyWithDetails[]} />
+      <PropertiesList properties={properties as PropertyWithDetails[]} canDelete />
     </ProtectedWrapper>
   );
 }

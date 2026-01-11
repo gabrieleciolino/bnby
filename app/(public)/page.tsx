@@ -14,6 +14,9 @@ import Image from "next/image";
 
 import { LandingContactForm } from "@/components/landing/landing-contact-form";
 import CustomIcon from "@/components/common/custom-icon";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { urls } from "@/lib/urls";
 
 export default function Home() {
   return (
@@ -36,6 +39,9 @@ export default function Home() {
               raccoglie le richieste in un pannello unico. Semplifica la
               gestione della tua struttura.
             </p>
+            <Button size="lg" asChild>
+              <Link href={urls.auth.register}>Ottieni adesso il tuo sito</Link>
+            </Button>
           </div>
 
           <div className="fade-up relative">

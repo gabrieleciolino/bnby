@@ -112,6 +112,80 @@ const findObjectWithKey = (root: unknown, key: string): AnyRecord | null => {
   return null;
 };
 
+const extractDeferredStateInstances = (html: string): unknown[] => {
+  if (!html.trim()) {
+    return [];
+  }
+
+  const results: unknown[] = [];
+
+  if (typeof DOMParser !== "undefined") {
+    try {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const nodes = Array.from(
+        doc.querySelectorAll('script[id^="data-deferred-state-"]')
+      );
+      for (const node of nodes) {
+        const content = node.textContent?.trim();
+        if (!content) {
+          continue;
+        }
+        try {
+          results.push(JSON.parse(content));
+        } catch {
+          continue;
+        }
+      }
+    } catch {
+      return results;
+    }
+  }
+
+  if (results.length > 0) {
+    return results;
+  }
+
+  const regex =
+    /<script[^>]*id=["']data-deferred-state-[^"']+["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(html)) !== null) {
+    const content = match[1]?.trim();
+    if (!content) {
+      continue;
+    }
+    try {
+      results.push(JSON.parse(content));
+    } catch {
+      continue;
+    }
+  }
+
+  return results;
+};
+
+const findObjectsWithKey = (root: unknown, key: string): AnyRecord[] => {
+  const stack = [root];
+  const found: AnyRecord[] = [];
+
+  while (stack.length) {
+    const current = stack.pop();
+
+    if (isRecord(current)) {
+      if (Object.prototype.hasOwnProperty.call(current, key)) {
+        found.push(current);
+      }
+      stack.push(...Object.values(current));
+      continue;
+    }
+
+    if (Array.isArray(current)) {
+      stack.push(...current);
+    }
+  }
+
+  return found;
+};
+
 const findLatLng = (root: unknown): { lat: number; lng: number } | null => {
   const stack = [root];
 
@@ -253,6 +327,60 @@ const getSections = (stayProductDetailPage: AnyRecord): AnyRecord[] => {
   return rawSections
     .map((item) => (isRecord(item) ? item.section : null))
     .filter((section): section is AnyRecord => isRecord(section));
+};
+
+const scoreStayProductDetailPage = (stayProductDetailPage: AnyRecord): number => {
+  let score = 0;
+  const sectionsContainer = isRecord(stayProductDetailPage.sections)
+    ? stayProductDetailPage.sections
+    : null;
+  const sections = getSections(stayProductDetailPage);
+  const sectionTypes = new Set(
+    sections
+      .map((section) => asString(section.__typename))
+      .filter((value): value is string => Boolean(value))
+  );
+
+  score += sections.length * 2;
+  if (sectionTypes.has("PdpTitleSection")) score += 3;
+  if (sectionTypes.has("AmenitiesSection")) score += 2;
+  if (sectionTypes.has("LocationSection")) score += 2;
+  if (sectionTypes.has("PhotoTourModalSection")) score += 1;
+  if (sectionTypes.has("AvailabilityCalendarSection")) score += 1;
+  if (isRecord(sectionsContainer?.metadata)) score += 2;
+  if (isRecord(sectionsContainer?.sbuiData)) score += 1;
+  if (asString(stayProductDetailPage.listingId)) score += 1;
+  if (asString(stayProductDetailPage.id)) score += 1;
+
+  return score;
+};
+
+const findStayProductDetailPage = (root: unknown): AnyRecord | null => {
+  const containers = findObjectsWithKey(root, "stayProductDetailPage");
+  const candidates = containers
+    .map((container) =>
+      isRecord(container.stayProductDetailPage)
+        ? container.stayProductDetailPage
+        : null
+    )
+    .filter((candidate): candidate is AnyRecord => Boolean(candidate));
+
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  if (candidates.length === 1) {
+    return candidates[0];
+  }
+
+  return candidates.reduce((best, candidate) => {
+    const bestScore = scoreStayProductDetailPage(best);
+    const candidateScore = scoreStayProductDetailPage(candidate);
+    if (candidateScore > bestScore) {
+      return candidate;
+    }
+    return best;
+  });
 };
 
 const findSection = (
@@ -520,18 +648,22 @@ export const parseAirbnbHtml = (html: string): AirbnbParseResult => {
   const values: Partial<PropertyFormValues> = {};
 
   const data = extractDataInjectorInstances(html);
-  if (!data) {
+  const deferredData = extractDeferredStateInstances(html);
+  const roots = [
+    ...(data ? [data] : []),
+    ...deferredData,
+  ];
+
+  if (roots.length === 0) {
     warnings.push("data_injector_missing");
     return { values, warnings };
   }
 
-  const container = findObjectWithKey(data, "stayProductDetailPage");
-  if (!container || !isRecord(container.stayProductDetailPage)) {
+  const stayProductDetailPage = findStayProductDetailPage(roots);
+  if (!stayProductDetailPage) {
     warnings.push("stay_product_missing");
     return { values, warnings };
   }
-
-  const stayProductDetailPage = container.stayProductDetailPage;
   const sections = getSections(stayProductDetailPage);
 
   const titleSection = findSection(sections, "PdpTitleSection");
@@ -643,7 +775,7 @@ export const parseAirbnbHtml = (html: string): AirbnbParseResult => {
 
   const bookingUrl =
     extractBookingUrlFromData(stayProductDetailPage) ??
-    extractBookingUrlFromData(data) ??
+    extractBookingUrlFromData(roots) ??
     extractBookingUrlFromHtml(html);
   if (bookingUrl) {
     values.booking = {

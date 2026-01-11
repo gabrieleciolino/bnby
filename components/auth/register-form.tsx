@@ -12,18 +12,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, LoginSchema } from "@/components/auth/schema";
+import {
+  loginSchema,
+  LoginSchema,
+  RegisterSchema,
+  registerSchema,
+} from "@/components/auth/schema";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { loginAction } from "@/components/auth/actions";
+import { loginAction, registerAction } from "@/components/auth/actions";
 import { urls } from "@/lib/urls";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { loadTurnstileScript } from "@/components/auth/turnstile";
 
-export default function LoginForm() {
-  const [isLoggingIn, startLoggingIn] = useTransition();
+export default function RegisterForm() {
+  const [isRegistering, startRegistering] = useTransition();
   const router = useRouter();
   const [company, setCompany] = useState("");
   const [captchaRequired, setCaptchaRequired] = useState(false);
@@ -62,20 +67,21 @@ export default function LoginForm() {
     };
   }, [captchaRequired, turnstileSiteKey]);
 
-  const form = useForm<LoginSchema>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<RegisterSchema>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
-  const onSubmit = (data: LoginSchema) => {
+  const onSubmit = (data: RegisterSchema) => {
     if (captchaRequired && !captchaToken) {
       toast.info("Completa la verifica anti-spam per continuare");
       return;
     }
-    startLoggingIn(async () => {
+    startRegistering(async () => {
       try {
         const payload = {
           ...data,
@@ -84,10 +90,10 @@ export default function LoginForm() {
           turnstileToken: captchaToken || undefined,
         };
         const {
-          data: loginData,
+          data: registerData,
           serverError,
           validationErrors,
-        } = await loginAction(payload);
+        } = await registerAction(payload);
 
         if (serverError) {
           if (serverError === "captcha_required") {
@@ -109,11 +115,16 @@ export default function LoginForm() {
           throw new Error();
         }
 
-        if (loginData?.user) {
-          if (loginData.account.is_admin) {
-            router.push(urls.admin.index);
-          } else {
-            router.push(urls.dashboard.index);
+        if (registerData?.user) {
+          toast.success(
+            "Abbiamo inviato una mail di conferma al tuo indirizzo."
+          );
+          setCompany("");
+          setCaptchaToken("");
+          setCaptchaRequired(false);
+          formStartRef.current = Date.now();
+          if (captchaWidgetIdRef.current && window.turnstile) {
+            window.turnstile.reset(captchaWidgetIdRef.current);
           }
         }
       } catch (error) {
@@ -164,19 +175,32 @@ export default function LoginForm() {
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirm Password</FormLabel>
+              <FormControl>
+                <Input type="password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         {captchaRequired && turnstileSiteKey ? (
           <div className="rounded-2xl border border-border bg-white/90 p-3 shadow-sm">
             <div ref={captchaContainerRef} />
           </div>
         ) : null}
-        <Button type="submit" className="w-full" disabled={isLoggingIn}>
-          {isLoggingIn && <Loader2 className="size-4 animate-spin" />}
-          Login
+        <Button type="submit" className="w-full" disabled={isRegistering}>
+          {isRegistering && <Loader2 className="size-4 animate-spin" />}
+          Registrati
         </Button>
         <p className="mt-4 text-lg text-center">
-          Non hai ancora un account?{" "}
-          <Link href={urls.auth.register} className="main-link">
-            Registrati
+          Hai già un account?{" "}
+          <Link href={urls.auth.login} className="main-link">
+            Accedi
           </Link>
         </p>
       </form>

@@ -12,6 +12,7 @@
     "db:sync": "drizzle-kit push && supabase gen types --lang typescript --linked  > ./lib/db/types.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.966.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",

@@ -262,5 +262,9 @@ html {
 }
 
 .main-container {
-  @apply max-w-7xl mx-auto p-2
+  @apply max-w-7xl mx-auto p-2;
+}
+
+.main-link {
+  @apply font-bold underline;
 }

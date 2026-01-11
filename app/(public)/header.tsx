@@ -1,5 +1,7 @@
 import Logo from "@/components/layout/logo";
+import { Button } from "@/components/ui/button";
 import { urls } from "@/lib/urls";
+import Link from "next/link";
 
 export default function PublicHeader() {
   return (
@@ -7,6 +9,14 @@ export default function PublicHeader() {
       <div className="main-container">
         <div className="flex items-center justify-between">
           <Logo href={urls.root} />
+          <div className="flex items-center gap-2">
+            <Button asChild>
+              <Link href={urls.auth.login}>Accedi</Link>
+            </Button>
+            <Button variant="secondary" asChild>
+              <Link href={urls.auth.register}>Registrati</Link>
+            </Button>
+          </div>
         </div>
       </div>
     </header>

@@ -739,6 +739,100 @@ export const savePropertyTemplateAction = authActionClient
     };
   });
 
+export const deletePropertyAction = adminActionClient
+  .inputSchema(
+    z.object({
+      propertyId: z.string().uuid(),
+    })
+  )
+  .action(async ({ ctx, parsedInput }) => {
+    const { supabase } = ctx;
+    const { propertyId } = parsedInput;
+
+    const { data: propertyData, error: propertyError } = await supabase
+      .from("property")
+      .select("id,details")
+      .eq("id", propertyId)
+      .single();
+
+    if (propertyError || !propertyData) {
+      throw new Error(propertyError?.message ?? "Proprieta non trovata");
+    }
+
+    const { data: galleryData, error: galleryError } = await supabase
+      .from("gallery")
+      .select("key")
+      .eq("property_id", propertyId);
+
+    if (galleryError) {
+      throw new Error(galleryError.message);
+    }
+
+    const details = propertyData.details as PropertyDetailsSchema;
+    const storagePaths = new Set<string>();
+
+    for (const item of details.gallery ?? []) {
+      const storagePath = getStoragePathFromUrl(item);
+      if (storagePath) {
+        storagePaths.add(storagePath);
+      }
+    }
+
+    for (const block of details.editorialBlocks ?? []) {
+      const storagePath = block?.image ? getStoragePathFromUrl(block.image) : null;
+      if (storagePath) {
+        storagePaths.add(storagePath);
+      }
+    }
+
+    for (const item of galleryData ?? []) {
+      if (item?.key) {
+        storagePaths.add(item.key);
+      }
+    }
+
+    if (storagePaths.size > 0) {
+      const { error: storageError } = await supabase.storage
+        .from("properties")
+        .remove(Array.from(storagePaths));
+
+      if (storageError) {
+        throw new Error(storageError.message);
+      }
+    }
+
+    const { error: deleteContactsError } = await supabase
+      .from("contact")
+      .delete()
+      .eq("property_id", propertyId);
+
+    if (deleteContactsError) {
+      throw new Error(deleteContactsError.message);
+    }
+
+    const { error: deleteGalleryError } = await supabase
+      .from("gallery")
+      .delete()
+      .eq("property_id", propertyId);
+
+    if (deleteGalleryError) {
+      throw new Error(deleteGalleryError.message);
+    }
+
+    const { error: deletePropertyError } = await supabase
+      .from("property")
+      .delete()
+      .eq("id", propertyId);
+
+    if (deletePropertyError) {
+      throw new Error(deletePropertyError.message);
+    }
+
+    return {
+      deleted: true,
+    };
+  });
+
 export const deleteGalleryImageAction = authActionClient
   .inputSchema(
     z.object({
