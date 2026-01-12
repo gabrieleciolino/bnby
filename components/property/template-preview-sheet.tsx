@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useFormContext } from "react-hook-form";
 import { PropertyFormValues } from "@/components/property/schema";
 import { Button } from "@/components/ui/button";
@@ -136,6 +136,20 @@ const sectionLabels: Record<BlockKey, string> = {
   footer: "Footer",
 };
 
+type CopySectionKey = keyof NonNullable<PropertyFormValues["landing"]>["copy"];
+
+const sectionCopyConfig: Partial<
+  Record<CopySectionKey, { titleLabel: string; subtitleLabel?: string }>
+> = {
+  editorial: { titleLabel: "Titolo sezione", subtitleLabel: "Sottotitolo" },
+  gallery: { titleLabel: "Titolo sezione", subtitleLabel: "Sottotitolo" },
+  services: { titleLabel: "Titolo sezione", subtitleLabel: "Sottotitolo" },
+  position: { titleLabel: "Titolo sezione", subtitleLabel: "Sottotitolo" },
+  contact: { titleLabel: "Titolo sezione", subtitleLabel: "Sottotitolo" },
+  faq: { titleLabel: "Titolo sezione", subtitleLabel: "Sottotitolo" },
+  footer: { titleLabel: "Titolo sezione", subtitleLabel: "Sottotitolo" },
+};
+
 const normalizeSectionOrder = (order?: BlockKey[]) => {
   const unique = Array.from(new Set(order ?? []));
   const filtered = unique.filter((key) => blockKeys.includes(key));
@@ -166,6 +180,10 @@ export default function TemplatePreviewSheet({
   const [isSaving, startSaving] = useTransition();
   const [isPublishingLanding, startPublishingLanding] = useTransition();
   const [forceDirtySave, setForceDirtySave] = useState(false);
+  const landingCopyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingLandingCopyRef = useRef<
+    NonNullable<PropertyFormValues["landing"]>["copy"] | null
+  >(null);
 
   const info = watch("info");
   const gallery = watch("gallery");
@@ -200,6 +218,9 @@ export default function TemplatePreviewSheet({
 
   useEffect(() => {
     return () => {
+      if (landingCopyTimerRef.current) {
+        clearTimeout(landingCopyTimerRef.current);
+      }
       previewEditorialBlocks.forEach((block) => block.revoke?.());
     };
   }, [previewEditorialBlocks]);
@@ -360,26 +381,32 @@ export default function TemplatePreviewSheet({
   const updateLandingCopy = (
     nextLandingCopy: NonNullable<PropertyFormValues["landing"]>["copy"]
   ) => {
-    const nextLanding = {
-      ...(landing ?? {}),
-      copy: nextLandingCopy,
-    };
-    const nextHtml = buildPropertyLandingHtml({
-      info,
-      services: selectedServices,
-      gallery: galleryItems,
-      position,
-      contact,
-      booking,
-      editorialBlocks: editorialBlocksForTemplate,
-      faqs,
-      landing: nextLanding,
-      theme,
-      propertyId,
-    });
-    setIsManualEdit(true);
-    setEditableHtml(nextHtml);
-    setLocalUpdatedAt(new Date());
+    pendingLandingCopyRef.current = nextLandingCopy;
+    if (landingCopyTimerRef.current) {
+      clearTimeout(landingCopyTimerRef.current);
+    }
+    landingCopyTimerRef.current = setTimeout(() => {
+      const nextLanding = {
+        ...(landing ?? {}),
+        copy: pendingLandingCopyRef.current ?? nextLandingCopy,
+      };
+      const nextHtml = buildPropertyLandingHtml({
+        info,
+        services: selectedServices,
+        gallery: galleryItems,
+        position,
+        contact,
+        booking,
+        editorialBlocks: editorialBlocksForTemplate,
+        faqs,
+        landing: nextLanding,
+        theme,
+        propertyId,
+      });
+      setIsManualEdit(true);
+      setEditableHtml(nextHtml);
+      setLocalUpdatedAt(new Date());
+    }, 400);
   };
 
   const updateLandingLayout = (
@@ -828,6 +855,8 @@ export default function TemplatePreviewSheet({
                     <div className="space-y-2">
                       {sectionOrder.map((sectionKey, index) => {
                         const isHidden = hiddenSections.has(sectionKey);
+                        const copyKey = sectionKey as CopySectionKey;
+                        const copyConfig = sectionCopyConfig[copyKey];
                         return (
                           <div
                             key={sectionKey}
@@ -940,6 +969,145 @@ export default function TemplatePreviewSheet({
                                     ))}
                                   </SelectContent>
                                 </Select>
+                              </div>
+                            )}
+                            {sectionKey === "description" && (
+                              <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-background/30 px-3 py-2">
+                                <input
+                                  id="description-show-stats"
+                                  type="checkbox"
+                                  className="size-4 accent-primary"
+                                  checked={
+                                    landingCopy?.description?.showStats ?? true
+                                  }
+                                  onChange={(event) => {
+                                    const nextValue = event.target.checked;
+                                    const nextLandingCopy = {
+                                      ...(landingCopy ?? {}),
+                                      description: {
+                                        ...(landingCopy?.description ?? {}),
+                                        showStats: nextValue,
+                                      },
+                                    };
+                                    setValue(
+                                      "landing.copy.description.showStats",
+                                      nextValue,
+                                      {
+                                        shouldDirty: true,
+                                        shouldValidate: true,
+                                      }
+                                    );
+                                    updateLandingCopy(nextLandingCopy);
+                                  }}
+                                />
+                                <Label
+                                  htmlFor="description-show-stats"
+                                  className="text-xs"
+                                >
+                                  Mostra statistiche (camere, bagni, ospiti)
+                                </Label>
+                              </div>
+                            )}
+                            {copyConfig && (
+                              <div className="grid gap-3 md:grid-cols-2">
+                                <div className="space-y-2">
+                                  <Label className="text-xs">
+                                    {copyConfig.titleLabel}
+                                  </Label>
+                                  <Input
+                                    value={
+                                      landingCopy?.[copyKey]?.title ?? ""
+                                    }
+                                    placeholder="Inserisci titolo"
+                                    onChange={(event) => {
+                                      const nextTitle = event.target.value;
+                                      const nextLandingCopy = {
+                                        ...(landingCopy ?? {}),
+                                        [copyKey]: {
+                                          ...(landingCopy?.[copyKey] ?? {}),
+                                          title: nextTitle,
+                                        },
+                                      };
+                                      setValue(
+                                        `landing.copy.${copyKey}.title`,
+                                        nextTitle,
+                                        {
+                                          shouldDirty: true,
+                                          shouldValidate: true,
+                                        }
+                                      );
+                                      updateLandingCopy(nextLandingCopy);
+                                    }}
+                                  />
+                                </div>
+                                {copyConfig.subtitleLabel && (
+                                  <div className="space-y-2">
+                                    <Label className="text-xs">
+                                    {copyConfig.subtitleLabel}
+                                  </Label>
+                                  <Input
+                                    value={
+                                      landingCopy?.[copyKey]?.subtitle ?? ""
+                                    }
+                                    placeholder="Inserisci sottotitolo"
+                                    onChange={(event) => {
+                                      const nextSubtitle =
+                                        event.target.value;
+                                      const nextLandingCopy = {
+                                        ...(landingCopy ?? {}),
+                                        [copyKey]: {
+                                          ...(landingCopy?.[copyKey] ?? {}),
+                                          subtitle: nextSubtitle,
+                                        },
+                                      };
+                                      setValue(
+                                        `landing.copy.${copyKey}.subtitle`,
+                                        nextSubtitle,
+                                        {
+                                          shouldDirty: true,
+                                          shouldValidate: true,
+                                          }
+                                        );
+                                        updateLandingCopy(nextLandingCopy);
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {sectionKey === "contact" && (
+                              <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-background/30 px-3 py-2">
+                                <input
+                                  id="contact-show-info"
+                                  type="checkbox"
+                                  className="size-4 accent-primary"
+                                  checked={landingCopy?.contact?.showInfo ?? true}
+                                  onChange={(event) => {
+                                    const nextValue = event.target.checked;
+                                    const nextLandingCopy = {
+                                      ...(landingCopy ?? {}),
+                                      contact: {
+                                        ...(landingCopy?.contact ?? {}),
+                                        showInfo: nextValue,
+                                      },
+                                    };
+                                    setValue(
+                                      "landing.copy.contact.showInfo",
+                                      nextValue,
+                                      {
+                                        shouldDirty: true,
+                                        shouldValidate: true,
+                                      }
+                                    );
+                                    updateLandingCopy(nextLandingCopy);
+                                  }}
+                                />
+                                <Label
+                                  htmlFor="contact-show-info"
+                                  className="text-xs"
+                                >
+                                  Mostra info di contatto accanto al form
+                                </Label>
                               </div>
                             )}
                           </div>

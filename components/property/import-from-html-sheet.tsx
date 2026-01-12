@@ -19,6 +19,7 @@ import {
 import { FieldPath, useFormContext } from "react-hook-form";
 import { PropertyFormValues } from "@/components/property/schema";
 import { parseAirbnbHtml } from "@/lib/parsers/airbnb";
+import { parseBookingHtml } from "@/lib/parsers/booking";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -76,12 +77,8 @@ export default function ImportFromHtmlSheet() {
       return;
     }
 
-    if (source !== "airbnb") {
-      toast.error("Parser non disponibile per questa sorgente");
-      return;
-    }
-
-    const { values } = parseAirbnbHtml(html);
+    const { values } =
+      source === "airbnb" ? parseAirbnbHtml(html) : parseBookingHtml(html);
 
     if (
       !values.info &&

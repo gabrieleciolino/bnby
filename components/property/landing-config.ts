@@ -52,6 +52,7 @@ export type ContactCopy = {
   formTitle?: string;
   formSubtitle?: string;
   emptyFormHint?: string;
+  showInfo?: boolean;
 };
 
 export type FaqCopy = {
@@ -70,6 +71,9 @@ export type FooterCopy = {
 
 export type LandingCopy = {
   hero?: HeroCopy;
+  description?: {
+    showStats?: boolean;
+  };
   editorial?: EditorialCopy;
   gallery?: GalleryCopy;
   services?: ServicesCopy;
@@ -86,6 +90,9 @@ export type LandingLayout = {
 
 export type ResolvedLandingCopy = {
   hero: HeroCopy;
+  description: {
+    showStats?: boolean;
+  };
   editorial: EditorialCopy;
   gallery: GalleryCopy;
   services: ServicesCopy;
@@ -114,6 +121,7 @@ export const defaultBlockOrder: BlockKey[] = [
 
 const createEmptyLandingCopy = (): ResolvedLandingCopy => ({
   hero: {},
+  description: {},
   editorial: {},
   gallery: {},
   services: {},
@@ -147,6 +155,10 @@ const heroCopySchema = z.object({
   secondaryCta: z.string().optional(),
 });
 
+const descriptionCopySchema = z.object({
+  showStats: z.boolean().optional(),
+});
+
 const galleryCopySchema = z.object({
   title: z.string().optional(),
   subtitle: z.string().optional(),
@@ -176,6 +188,7 @@ const contactCopySchema = z.object({
   formTitle: z.string().optional(),
   formSubtitle: z.string().optional(),
   emptyFormHint: z.string().optional(),
+  showInfo: z.boolean().optional(),
 });
 
 const faqCopySchema = z.object({
@@ -202,6 +215,7 @@ export const landingSchema = z
     copy: z
       .object({
         hero: heroCopySchema.optional(),
+        description: descriptionCopySchema.optional(),
         editorial: editorialCopySchema.optional(),
         gallery: galleryCopySchema.optional(),
         services: servicesCopySchema.optional(),
@@ -227,6 +241,12 @@ const normalizeCopyValue = (value: string | undefined) => {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
 };
+
+const sanitizeDescriptionCopy = (
+  copy?: LandingCopy["description"]
+): LandingCopy["description"] => ({
+  showStats: typeof copy?.showStats === "boolean" ? copy.showStats : true,
+});
 
 const sanitizeHeroCopy = (copy?: HeroCopy): HeroCopy => ({
   eyebrow: normalizeCopyValue(copy?.eyebrow),
@@ -266,6 +286,7 @@ const sanitizeContactCopy = (copy?: ContactCopy): ContactCopy => ({
   formTitle: normalizeCopyValue(copy?.formTitle),
   formSubtitle: normalizeCopyValue(copy?.formSubtitle),
   emptyFormHint: normalizeCopyValue(copy?.emptyFormHint),
+  showInfo: typeof copy?.showInfo === "boolean" ? copy.showInfo : true,
 });
 
 const sanitizeFaqCopy = (copy?: FaqCopy): FaqCopy => ({
@@ -311,6 +332,7 @@ export const resolveLandingConfig = (
   return {
     copy: {
       hero: sanitizeHeroCopy(copyInput.hero),
+      description: sanitizeDescriptionCopy(copyInput.description),
       editorial: sanitizeEditorialCopy(copyInput.editorial),
       gallery: sanitizeGalleryCopy(copyInput.gallery),
       services: sanitizeServicesCopy(copyInput.services),

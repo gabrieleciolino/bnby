@@ -418,6 +418,9 @@ const formatServiceLabel = (value: string) => {
   return normalized ? normalized : value;
 };
 
+const fallbackServiceIconSvg =
+  '<svg class="service-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8.5 12l2.4 2.4L15.5 9.8"></path></svg>';
+
 const normalizeCopy = (value?: string) => {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
@@ -549,9 +552,24 @@ export const buildPropertyLandingHtml = ({
     palette.colors.accentStrong,
     isDarkPalette ? 0.2 : 0.15
   );
-  const modalBg = isDarkPalette ? "#0b0f12" : "#ffffff";
-  const modalInk = isDarkPalette ? "#f2f2f2" : "#f8f2e9";
-  const modalFrame = isDarkPalette ? "#080b0e" : "#0b0f12";
+  const modalBg = isDarkPalette
+    ? "rgba(10, 12, 16, 0.72)"
+    : "rgba(255, 255, 255, 0.78)";
+  const modalInk = isDarkPalette ? "#f2f2f2" : "#101318";
+  const modalFrame = isDarkPalette
+    ? "rgba(15, 18, 22, 0.7)"
+    : "rgba(255, 255, 255, 0.6)";
+  const modalControlBg = isDarkPalette
+    ? "rgba(255,255,255,0.12)"
+    : "rgba(255,255,255,0.9)";
+  const modalControlInk = isDarkPalette ? "#f2f2f2" : "#101318";
+  const modalControlBorder = "transparent";
+  const modalControlShadow = isDarkPalette
+    ? "0 12px 24px rgba(0,0,0,0.45)"
+    : "0 10px 22px rgba(11,15,18,0.16)";
+  const modalControlHighlight = isDarkPalette
+    ? "0 0 0 1px rgba(255,255,255,0.15) inset"
+    : "0 0 0 1px rgba(255,255,255,0.7) inset";
   const footerBg = isDarkPalette ? "#1a2430" : "#1f2426";
   const footerInk = "#fefcf8";
   const footerNote = "rgba(255, 255, 255, 0.7)";
@@ -632,12 +650,15 @@ export const buildPropertyLandingHtml = ({
 
   const contactTitle = normalizeCopy(landingCopy?.contact?.title) ?? "Contatti";
   const contactSubtitle = normalizeCopy(landingCopy?.contact?.subtitle);
-  const contactName = normalizeCopy(contact?.name) ?? "Host";
+  const contactName = normalizeCopy(contact?.name);
+  const contactNameDisplay = contactName ?? "Host";
   const contactEmail = normalizeCopy(contact?.email);
   const contactPhone = normalizeCopy(contact?.phone);
   const contactPhoneLink = contactPhone
     ? contactPhone.replace(/[^+\d]/g, "")
     : "";
+  const showContactInfo = landingCopy?.contact?.showInfo ?? true;
+  const hasContactInfo = Boolean(contactName || contactEmail || contactPhone);
 
   const faqTitle = normalizeCopy(landingCopy?.faq?.title) ?? "FAQ";
   const faqSubtitle = normalizeCopy(landingCopy?.faq?.subtitle);
@@ -662,7 +683,7 @@ export const buildPropertyLandingHtml = ({
         label: service?.label ?? formatServiceLabel(id),
         iconSvg: service
           ? buildLucideSvg(service.icon, "service-icon-svg")
-          : "",
+          : fallbackServiceIconSvg,
       };
     }) ?? [];
 
@@ -690,13 +711,28 @@ export const buildPropertyLandingHtml = ({
       <div class="gallery-modal" data-gallery-modal aria-hidden="true" role="dialog" aria-label="Galleria foto">
         <div class="gallery-modal-backdrop" data-gallery-close></div>
         <div class="gallery-modal-content" role="document">
-          <button class="gallery-close" type="button" data-gallery-close aria-label="Chiudi">Chiudi</button>
+          <button class="gallery-close" type="button" data-gallery-close aria-label="Chiudi">
+            <svg class="gallery-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 6L6 18"></path>
+              <path d="M6 6l12 12"></path>
+            </svg>
+          </button>
           <div class="gallery-stage">
-            <button class="gallery-arrow" type="button" data-gallery-prev aria-label="Foto precedente">&#8592;</button>
+            <button class="gallery-arrow" type="button" data-gallery-prev aria-label="Foto precedente">
+              <svg class="gallery-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M19 12H5"></path>
+                <path d="M12 19l-7-7 7-7"></path>
+              </svg>
+            </button>
             <img class="gallery-modal-image" src="${escapeHtml(
               galleryItems[0]?.url ?? ""
             )}" alt="${escapeHtml(galleryItems[0]?.alt ?? "Foto")}" />
-            <button class="gallery-arrow" type="button" data-gallery-next aria-label="Foto successiva">&#8594;</button>
+            <button class="gallery-arrow" type="button" data-gallery-next aria-label="Foto successiva">
+              <svg class="gallery-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14"></path>
+                <path d="M12 5l7 7-7 7"></path>
+              </svg>
+            </button>
           </div>
           <div class="gallery-thumbs">
             ${galleryItems
@@ -767,7 +803,17 @@ export const buildPropertyLandingHtml = ({
               <details class="faq-item" data-reveal style="--reveal-delay:${
                 index * 40
               }ms">
-                <summary>${escapeHtml(question)}</summary>
+                <summary>
+                  <span class="faq-question">${escapeHtml(question)}</span>
+                  <span class="faq-icon" aria-hidden="true">
+                    <svg class="faq-icon-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 15l-6-6-6 6"></path>
+                    </svg>
+                    <svg class="faq-icon-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M6 9l6 6 6-6"></path>
+                    </svg>
+                  </span>
+                </summary>
                 <div class="faq-answer">${formatText(answer)}</div>
               </details>`;
           })
@@ -804,7 +850,9 @@ export const buildPropertyLandingHtml = ({
           .join("")
       : `<p class="section-empty">${escapeHtml(servicesEmpty)}</p>`;
 
-  const descriptionStatsHtml = `
+  const showDescriptionStats = landingCopy?.description?.showStats ?? true;
+  const descriptionStatsHtml = showDescriptionStats
+    ? `
     <div class="description-stats">
       <div class="description-stat">
         <div class="stat-label">Camere</div>
@@ -821,7 +869,8 @@ export const buildPropertyLandingHtml = ({
         <div class="stat-value">${escapeHtml(String(info?.guests ?? 0))}</div>
       </div>
     </div>
-  `;
+  `
+    : "";
 
   const descriptionSectionHtml = `
     <section id="descrizione">
@@ -931,27 +980,40 @@ export const buildPropertyLandingHtml = ({
       `
     : "";
 
-  const contactPhoneHtml = contactPhone
-    ? `
+  const contactInfoHtml =
+    showContactInfo && hasContactInfo
+      ? `
         <div class="contact-card">
-          <span class="contact-label">Telefono</span>
-          <strong>${escapeHtml(contactPhone)}</strong>
           ${
             contactName
-              ? `<span class="contact-helper">Contatta ${escapeHtml(
-                  contactName
-                )}</span>`
+              ? `<div class="contact-item">
+                  <span>Host</span>
+                  <strong>${escapeHtml(contactNameDisplay)}</strong>
+                </div>`
               : ""
           }
-          <a class="btn btn-outline" href="tel:${escapeHtml(
-            contactPhoneLink || contactPhone
-          )}">Chiama</a>
+          ${
+            contactEmail
+              ? `<div class="contact-item">
+                  <span>Email</span>
+                  <strong>${escapeHtml(contactEmail)}</strong>
+                </div>`
+              : ""
+          }
+          ${
+            contactPhone
+              ? `<div class="contact-item">
+                  <span>Telefono</span>
+                  <strong>${escapeHtml(contactPhone)}</strong>
+                </div>`
+              : ""
+          }
         </div>
       `
-    : "";
+      : "";
 
   const contactSectionHtml =
-    contactEmail || contactPhone
+    contactEmail || contactPhone || contactName
       ? `
     <section id="contatti">
       <div class="section-header" data-reveal>
@@ -960,10 +1022,10 @@ export const buildPropertyLandingHtml = ({
       </div>
       <div class="contact-panel" data-reveal>
         <div class="contact-grid${
-          contactEmail && contactPhone ? " contact-grid--split" : ""
+          contactFormHtml && contactInfoHtml ? " contact-grid--split" : ""
         }">
           ${contactFormHtml}
-          ${contactPhoneHtml}
+          ${contactInfoHtml}
         </div>
       </div>
     </section>
@@ -1142,6 +1204,14 @@ export const buildPropertyLandingHtml = ({
         --modal-bg: ${modalBg};
         --modal-ink: ${modalInk};
         --modal-frame: ${modalFrame};
+        --modal-control-bg: ${modalControlBg};
+        --modal-control-ink: ${modalControlInk};
+        --modal-control-border: ${modalControlBorder};
+        --modal-control-shadow: ${modalControlShadow};
+        --modal-control-highlight: ${modalControlHighlight};
+        --modal-glass-border: ${isDarkPalette
+          ? "rgba(255,255,255,0.12)"
+          : "rgba(255,255,255,0.55)"};
         --footer-bg: ${footerBg};
         --footer-ink: ${footerInk};
         --footer-note: ${footerNote};
@@ -1404,10 +1474,13 @@ export const buildPropertyLandingHtml = ({
       .services-grid {
         display: grid;
         gap: 16px;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 220px));
+        justify-content: start;
         list-style: none;
         padding: 0;
         margin: 0;
+        width: fit-content;
+        max-width: 100%;
       }
 
       .service-card {
@@ -1531,10 +1604,15 @@ export const buildPropertyLandingHtml = ({
         display: flex;
       }
 
+      body:has(.gallery-modal.is-open) .preview-banner {
+        display: none;
+      }
+
       .gallery-modal-backdrop {
         position: absolute;
         inset: 0;
-        background: rgba(10, 10, 12, 0.7);
+        background: rgba(9, 11, 14, 0.55);
+        backdrop-filter: blur(6px);
       }
 
       .gallery-modal-content {
@@ -1545,6 +1623,8 @@ export const buildPropertyLandingHtml = ({
         background: var(--modal-bg);
         color: var(--modal-ink);
         border-radius: 18px;
+        border: 1px solid var(--modal-glass-border);
+        backdrop-filter: blur(18px) saturate(140%);
         display: flex;
         flex-direction: column;
         padding: 18px;
@@ -1553,13 +1633,25 @@ export const buildPropertyLandingHtml = ({
 
       .gallery-close {
         align-self: flex-end;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        background: transparent;
-        color: inherit;
-        padding: 8px 14px;
+        border: 0;
+        background: var(--modal-control-bg);
+        color: var(--modal-control-ink);
+        width: 38px;
+        height: 38px;
         border-radius: 999px;
-        font-size: 0.85rem;
         cursor: pointer;
+        box-shadow: var(--modal-control-shadow), var(--modal-control-highlight);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        backdrop-filter: blur(8px);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .gallery-close-icon {
+        width: 18px;
+        height: 18px;
       }
 
       .gallery-stage {
@@ -1588,14 +1680,22 @@ export const buildPropertyLandingHtml = ({
         width: 46px;
         height: 46px;
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        background: rgba(255, 255, 255, 0.06);
-        color: inherit;
+        border: 0;
+        background: var(--modal-control-bg);
+        color: var(--modal-control-ink);
         font-size: 1.2rem;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        box-shadow: var(--modal-control-shadow), var(--modal-control-highlight);
+        backdrop-filter: blur(8px);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .gallery-arrow-icon {
+        width: 22px;
+        height: 22px;
       }
 
       .gallery-arrow[data-gallery-prev] {
@@ -1609,6 +1709,16 @@ export const buildPropertyLandingHtml = ({
       .gallery-arrow:disabled {
         opacity: 0.35;
         cursor: default;
+      }
+
+      .gallery-arrow:not(:disabled):hover,
+      .gallery-close:hover {
+        transform: translateY(-50%) scale(1.04);
+        box-shadow: var(--modal-control-shadow), var(--modal-control-highlight);
+      }
+
+      .gallery-close:hover {
+        transform: scale(1.04);
       }
 
       .gallery-thumbs {
@@ -1706,6 +1816,8 @@ export const buildPropertyLandingHtml = ({
         .services-grid {
           gap: 12px;
           grid-template-columns: 1fr;
+          width: 100%;
+          justify-content: stretch;
         }
 
         .service-card {
@@ -1943,6 +2055,7 @@ export const buildPropertyLandingHtml = ({
         background: var(--card-muted);
       }
 
+
       .contact-label {
         font-size: 0.7rem;
         text-transform: uppercase;
@@ -1986,10 +2099,42 @@ export const buildPropertyLandingHtml = ({
         cursor: pointer;
         font-weight: 600;
         list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
       }
 
       .faq-item summary::marker,
       .faq-item summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .faq-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        background: var(--card-muted);
+        color: var(--ink);
+      }
+
+      .faq-icon svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .faq-icon-up {
+        display: none;
+      }
+
+      .faq-item[open] .faq-icon-up {
+        display: inline;
+      }
+
+      .faq-item[open] .faq-icon-down {
         display: none;
       }
 

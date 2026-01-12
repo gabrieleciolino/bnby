@@ -41,7 +41,7 @@ export const propertySchema = z.object({
   contact: z
     .object({
       name: z.string().optional(),
-      email: z.email().optional(),
+      email: z.string().trim().email().optional().or(z.literal("")),
       phone: z.string().optional(),
     })
     .optional(),

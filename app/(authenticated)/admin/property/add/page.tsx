@@ -3,7 +3,7 @@ import PropertyForm from "@/components/property/property-form";
 
 export default function AddPropertyPage() {
   return (
-    <ProtectedWrapper title="Aggiungi una nuova proprietà">
+    <ProtectedWrapper>
       <PropertyForm isAdmin />
     </ProtectedWrapper>
   );

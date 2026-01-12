@@ -25,7 +25,6 @@ export default async function PropertyPage({
 
   return (
     <ProtectedWrapper
-      title="Proprietà"
       actions={
         <div className="flex flex-wrap items-center gap-2">
           {canSendColdEmail && (
@@ -39,11 +38,6 @@ export default async function PropertyPage({
               }
             />
           )}
-          <Button asChild variant="outline">
-            <Link href={`/admin/property/${propertyId}/contacts`}>
-              Contatti
-            </Link>
-          </Button>
         </div>
       }
     >
